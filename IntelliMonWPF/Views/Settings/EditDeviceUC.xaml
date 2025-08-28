@@ -1,0 +1,92 @@
+﻿<UserControl x:Class="IntelliMonWPF.Views.Settings.EditDeviceUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:IntelliMonWPF.Views.Settings"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="300"
+             Padding="15">
+    <Grid>
+        <StackPanel>
+            <!-- 标题区域 -->
+            <TextBlock 
+                Text="Edit Device" 
+                FontSize="24" 
+                FontWeight="Bold" 
+                Margin="0 0 0 20"
+                Padding="0 5"/>
+
+            <!-- 功能选择 -->
+            <StackPanel 
+                Margin="0 0 0 10" 
+                Orientation="Horizontal"
+                MinHeight="30"
+                VerticalAlignment="Center">
+                <TextBlock 
+                    Text="Function:" 
+                    FontSize="14" 
+                    Width="100"
+                    VerticalAlignment="Center"/>
+                <ComboBox 
+                    Width="150" 
+                    ItemsSource="{Binding FunctionList}" 
+                    DisplayMemberPath="Value" 
+                    SelectedItem="{Binding SelectFunction}"
+                    VerticalAlignment="Center"/>
+            </StackPanel>
+
+            <!-- 从站ID -->
+            <StackPanel 
+                Orientation="Horizontal" 
+                Margin="0 0 0 10"
+                MinHeight="30"
+                VerticalAlignment="Center">
+                <TextBlock 
+                    Text="Slave ID:" 
+                    FontSize="14" 
+                    Width="100"
+                    VerticalAlignment="Center"/>
+                <TextBox 
+                    Width="150" 
+                    VerticalAlignment="Center" Text="{Binding SavleID}"/>
+            </StackPanel>
+
+            <!-- 超时设置 -->
+            <StackPanel 
+                Orientation="Horizontal" 
+                Margin="0 0 0 10"
+                MinHeight="30"
+                VerticalAlignment="Center">
+                <TextBlock 
+                    Text="Time Out:" 
+                    FontSize="14" 
+                    Width="100"
+                    VerticalAlignment="Center"/>
+                <TextBox 
+                    Width="150" 
+                    VerticalAlignment="Center" Text="{Binding TimeOut}"/>
+            </StackPanel>
+
+            <!-- 轮询间隔 -->
+            <StackPanel 
+                Orientation="Horizontal" 
+                Margin="0 0 0 10"
+                MinHeight="30"
+                VerticalAlignment="Center">
+                <TextBlock 
+                    Text="Polling Interval(ms):" 
+                    FontSize="14" 
+                    Width="100"
+                    VerticalAlignment="Center"/>
+                <TextBox 
+                    Width="150" 
+                    VerticalAlignment="Center" Text="{Binding Interval}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                <Button Content="Ok" Margin="30 0" Width="100" Command="{Binding UpdateCmd}"></Button>
+                <Button Content="Canel" Width="100"></Button>
+            </StackPanel>
+        </StackPanel>
+    </Grid>
+</UserControl>

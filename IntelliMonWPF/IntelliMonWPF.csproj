@@ -9,14 +9,38 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
-    <PackageReference Include="Prism.DryIoc" Version="9.0.537" />
-    <PackageReference Include="RestSharp" Version="112.1.0" />
-    <PackageReference Include="System.IO.Ports" Version="9.0.8" />
+    <None Remove="Image\24gl-minimization.png" />
+    <None Remove="Image\popup.png" />
+    <None Remove="Image\前进.png" />
+    <None Remove="Image\后退.png" />
+    <None Remove="Image\弹窗关闭.png" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DTOs\" />
+    <Resource Include="Image\24gl-minimization.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Image\popup.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Image\前进.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Image\后退.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+    <Resource Include="Image\弹窗关闭.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Resource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="NModbus4" Version="2.1.0" />
+    <PackageReference Include="Prism.DryIoc" Version="9.0.537" />
+    <PackageReference Include="RestSharp" Version="112.1.0" />
+    <PackageReference Include="System.IO.Ports" Version="9.0.8" />
   </ItemGroup>
 
 </Project>

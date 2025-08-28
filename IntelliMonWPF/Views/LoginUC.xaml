@@ -6,8 +6,16 @@
              xmlns:local="clr-namespace:IntelliMonWPF.Views"
              xmlns:md="http://materialdesigninxaml.net/winfx/xaml/themes"
              mc:Ignorable="d"
+             xmlns:prism="http://prismlibrary.com/"
              xmlns:helper="clr-namespace:IntelliMonWPF.Helper"
-             d:DesignHeight="450" d:DesignWidth="800">
+             Height="450" Width="800">
+    <prism:Dialog.WindowStyle>
+        <Style TargetType="Window">
+            <Setter Property="SizeToContent" Value="WidthAndHeight"></Setter>
+            <Setter Property="ResizeMode" Value="NoResize"/>
+            <Setter Property="prism:Dialog.WindowStartupLocation" Value="CenterScreen"></Setter>
+        </Style>
+    </prism:Dialog.WindowStyle>
     <Border Padding="50">
         <!-- 添加内边距缩小空白 -->
         <Border.Background>
@@ -32,16 +40,16 @@
                                 Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" />
 
                     <!-- 密码输入框 -->
-                    <PasswordBox md:HintAssist.Hint="密码" Margin="0,10" Style="{StaticResource MaterialDesignFloatingHintPasswordBox}" helper:PassWordBoxHelper.PassWord="{Binding Pwd}"/>
+                    <PasswordBox md:HintAssist.Hint="密码" Margin="0,10" Style="{StaticResource MaterialDesignFloatingHintPasswordBox}" helper:PassWordBoxHelper.PassWord="{Binding Pwd,Mode=TwoWay,UpdateSourceTrigger=PropertyChanged}"/>
 
                     <!-- 登录按钮 -->
-                    <Button Content="登录" Style="{StaticResource MaterialDesignRaisedButton}" 
+                    <Button Content="登录" Style="{StaticResource MaterialDesignRaisedButton}" Command="{Binding LoginCommand}"
                             Margin="0,20,0,10" Width="150" HorizontalAlignment="Center" Background="#1E3A8A" BorderBrush="#1E3A8A" />
 
                     <!-- 注册链接 -->
                     <TextBlock HorizontalAlignment="Center" Margin="0,10,0,0">
                         <Run Text="还没有账号？" Foreground="#666" />
-                        <Hyperlink NavigateUri="RegisterPage" Foreground="#60A5FA">立即注册</Hyperlink>
+                        <Hyperlink NavigateUri="RegisterPage" Foreground="#60A5FA" Command="{Binding RegisterCommand}">立即注册</Hyperlink>
                     </TextBlock>
                 </StackPanel>
             </md:Card>

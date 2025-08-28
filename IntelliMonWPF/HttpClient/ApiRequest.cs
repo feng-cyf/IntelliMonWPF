@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.HttpClient
 {
-    internal class ApiRequest
+    internal class ApiRequest<T> where T : class
     {
         public string Route { get; set; }
         /// <summary>
@@ -15,7 +15,7 @@ namespace IntelliMonWPF.HttpClient
         /// </summary>
         public Method Method { get; set; }
 
-        public object Parsmeters { get; set; }
+        public T Parsmeters { get; set; }
 
         public string ContentType { get; set; } = "application/json";
     }

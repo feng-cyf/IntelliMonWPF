@@ -1,8 +1,11 @@
-﻿using System;
+﻿using IntelliMonWPF.DTOs;
+using IntelliMonWPF.HttpClient;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace IntelliMonWPF.ViewModels
 {
@@ -12,21 +15,22 @@ namespace IntelliMonWPF.ViewModels
 
         public bool CanCloseDialog()
         {
-            throw new NotImplementedException();
+            return true;
         }
 
         public void OnDialogClosed()
         {
-            throw new NotImplementedException();
+           
         }
 
         public void OnDialogOpened(IDialogParameters parameters)
         {
-            throw new NotImplementedException();
+           
         }
-        public LoginUCViewModel()
+        public LoginUCViewModel(IDialogService dialogService)
         {
-            RequestClose=new DialogCloseListener();
+            RequestClose = new DialogCloseListener();
+            this.dialogService = dialogService;
         }
 
         private string _Username;
@@ -47,7 +51,50 @@ namespace IntelliMonWPF.ViewModels
                 RaisePropertyChanged();
             }
         }
+        private ApiClient apiClient = new ApiClient();
+        public DelegateCommand LoginCommand => new DelegateCommand(() =>
+        {
+            if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Pwd))
+            {
+                MessageBox.Show("用户名或密码不能为空");
+                return;
+            }
+            
+            var loginResponse = apiClient.Excute<UserInfo, LoginDTO>(new ApiRequest<LoginDTO>
+            {
+                Route = "login",
+                Method = RestSharp.Method.Post,
+                Parsmeters = new LoginDTO
+                {
+                    username = Username,
+                    password = Pwd
+                }
+            });
+            if (loginResponse.code == 200)
+            {
 
-
+                // 关闭对话框并传递结果
+                var parameters = new DialogParameters
+                {
+                    { "userInfo", loginResponse.data }
+                };
+                RequestClose.Invoke(parameters,ButtonResult.OK);
+            }
+            else
+            {
+                MessageBox.Show($"登陆失败: {loginResponse.message}");
+            }
+        });
+        private IDialogService dialogService { get; set; }
+        public DelegateCommand RegisterCommand => new DelegateCommand(() =>
+        {
+            dialogService.ShowDialog("RegisterUC", null, r =>
+            {
+                if (r != null && r.Result == ButtonResult.OK)
+                {
+                    MessageBox.Show("注册成功，请登录");
+                }
+            }); 
+        });
     }
 }
