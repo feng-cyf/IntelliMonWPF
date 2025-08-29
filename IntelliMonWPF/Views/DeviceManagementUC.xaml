@@ -134,6 +134,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="80"/>
@@ -149,8 +150,10 @@
                             <TextBlock Text="从站ID:" Grid.Row="2" Margin="0,5,0,0"/>
                             <TextBlock Text="{Binding SelectedDevice.SlaveId}" Grid.Row="2" Grid.Column="1" Margin="0,5,0,0"/>
 
-                            <TextBlock Text="超时设置:" Grid.Row="3" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedDevice.Timeout}" Grid.Row="3" Grid.Column="1" Margin="0,5,0,0"/>
+                            <TextBlock Text="读取超时(ms):" Grid.Row="3" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding SelectedDevice.ReadModel.ReadTimeout}" Grid.Row="3" Grid.Column="1" Margin="0,5,0,0"/>
+                            <TextBlock Text="发送超时(ms):" Grid.Row="4" Margin="0,5,0,0"/>
+                            <TextBlock Text="" Grid.Row="4" Grid.Column="1" Margin="0,5,0,0"/>
                         </Grid>
                     </Expander>
 
@@ -194,7 +197,7 @@
                         </Grid>
                     </Expander>
                     <Button Content="导入csv" Margin="0 10"></Button>
-                    <Button Content="报文查看" Margin="0 10"></Button>
+                    <Button Content="报文查看" Margin="0 10" Command="{Binding ShowPackUCCmdCommand}"></Button>
                 </StackPanel>
             </Border>
 

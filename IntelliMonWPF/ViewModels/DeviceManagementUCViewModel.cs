@@ -21,6 +21,7 @@ namespace IntelliMonWPF.ViewModels
             EditDeviceCmd = new DelegateCommand(EditDebice);
             this.modbusDevice = modbusDictManger;
             Devices =this.modbusDevice.ModbusMangeList;
+            ShowPackUCCmdCommand = new DelegateCommand(ShowPackUC);
         }
 
         private ObservableCollection<DeviceModel> _Devices;
@@ -60,6 +61,10 @@ namespace IntelliMonWPF.ViewModels
                 RaisePropertyChanged();
             }
         }
-
+        public DelegateCommand ShowPackUCCmdCommand { get; set; }
+        private void ShowPackUC() 
+        {
+            _dialogService.Show("ShowPackUC", null, callback => { });
+        }
     }
 }

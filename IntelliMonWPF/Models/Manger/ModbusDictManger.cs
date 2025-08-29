@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
@@ -8,8 +9,9 @@ using System.Windows;
 
 namespace IntelliMonWPF.Models.Manger
 {
-    class ModbusDictManger
+     class ModbusDictManger
     {
+        public ConcurrentQueue<string> MoudbusQueue { get; set; }=new ConcurrentQueue<string>();
         public Dictionary<string,DeviceModel> ModbusMangeDict { get; set; } = new Dictionary<string, DeviceModel>();
         public ObservableCollection<DeviceModel> ModbusMangeList { get; set; } = new ObservableCollection<DeviceModel>();
         public void AddDevice(DeviceModel device)

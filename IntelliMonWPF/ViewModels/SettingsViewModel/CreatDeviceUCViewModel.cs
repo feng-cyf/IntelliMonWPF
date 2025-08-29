@@ -98,7 +98,7 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
         {
             RequestClose.Invoke();
         });
-        private void AddTcpDevice()
+        private async Task AddTcpDevice()
         {
            if (!CanWriteIP && string.IsNullOrEmpty(IpAdresss))
             {
@@ -116,11 +116,12 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
                 Type="TCPModbus",Protocol=SelectModbus.Key,
                 ConnectionString= IpAdresss + ":" + Port.ToString(),
                 Channel= new IF_Implements.Channel.ModbusReadChannel(),
-                Name=IpAdresss+":"+Port.ToString(),SlaveId=Convert.ToInt32(SalveID)
+                Name=IpAdresss+":"+Port.ToString(),SlaveId=Convert.ToInt32(SalveID),
+                Function=SelectFunction
             };
             if (!ModbusDictManger.ModbusMangeDict.ContainsKey(deviceModel.Name))
             { 
-                deviceModel.Channel.OpenAsyance(deviceModel);
+                await deviceModel.Channel.OpenAsyance(deviceModel);
                 if (deviceModel.Channel.IsConnected)
                 {
                     deviceModel.Status = "已连接";
@@ -158,7 +159,7 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
                 SerialPortType = SerialPortType == true ? ModbusEnum.SerialPortType.RTU : ModbusEnum.SerialPortType.ASCII,
                 Type = SerialPortType == true ? "RTUModbus" : "ASCIIModbus",
                 Port=0,PeriodTime=Convert.ToInt32(PeriodTime),
-                ConnectionString="串口",SlaveId=Convert.ToInt32(SalveID)
+                ConnectionString="串口",SlaveId=Convert.ToInt32(SalveID),Function=SelectFunction
             };
             deviceModel.Channel.OpenAsyance(deviceModel);
             if (deviceModel.Channel.IsConnected)
@@ -298,6 +299,36 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
                 RaisePropertyChanged();
             }
         }
+
+        // 初始化01到04的Modbus功能码键值对
+        private ObservableCollection<KeyValuePair<string, string>> _FunctionList = new ObservableCollection<KeyValuePair<string, string>>
+{
+    new KeyValuePair<string, string>("01", "读取线圈状态 (Read Coils)"),
+    new KeyValuePair<string, string>("02", "读取离散输入 (Read Discrete Inputs)"),
+    new KeyValuePair<string, string>("03", "读取保持寄存器 (Read Holding Registers)"),
+    new KeyValuePair<string, string>("04", "读取输入寄存器 (Read Input Registers)")
+};
+
+
+        public ObservableCollection<KeyValuePair<string,string>> FunctionList
+        {
+            get { return _FunctionList; }
+            set {
+                _FunctionList = value;
+                RaisePropertyChanged();
+            }
+        }
+        private KeyValuePair<string,string> _SelectFunction;
+
+        public KeyValuePair<string,string> SelectFunction
+        {
+            get { return _SelectFunction; }
+            set { _SelectFunction = value;
+                RaisePropertyChanged();
+            }
+        }
+
+
 
 
         #region 串口参数

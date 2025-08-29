@@ -38,19 +38,24 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
             }
 
             SavleID = DeviceModel.SlaveId;
-            TimeOut = DeviceModel.Timeout;
+            TimeOut = DeviceModel.ReadModel.ReadTimeout;
             Interval = DeviceModel.PeriodTime;
+            StartAdress=DeviceModel.ReadModel.StartAdress;
+            Number=DeviceModel.ReadModel.NumAdress;
         }
         public EditDeviceUCViewModel()
         {
             UpdateCmd=new DelegateCommand(Update);
+            CloseCmd=new DelegateCommand(Close);
         }
 
         #region 参数设置
-        private ObservableCollection<KeyValuePair<string,string>> _FunctionList=new ObservableCollection<KeyValuePair<string, string>>
+        private ObservableCollection<KeyValuePair<string, string>> _FunctionList = new ObservableCollection<KeyValuePair<string, string>>
         {
+            new KeyValuePair<string, string>("01", "01 线圈状态读取"),
             new KeyValuePair<string, string>("02", "02 输入线圈读取"),
-            new KeyValuePair<string, string>("04", "04 寄存器读取")
+            new KeyValuePair<string, string>("03", "03 保持寄存器读取"),
+            new KeyValuePair<string, string>("04", "04 输入寄存器读取")
         };
 
         public ObservableCollection<KeyValuePair<string, string>> FunctionList
@@ -105,13 +110,41 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
                 RaisePropertyChanged();
             }
         }
+
+        private int _StartAdress;
+
+        public int StartAdress
+        {
+            get { return _StartAdress; }
+            set { _StartAdress = value;
+                RaisePropertyChanged();
+            }
+        }
+        private int _Number;
+
+        public int Number
+        {
+            get { return _Number; }
+            set { _Number = value; }
+        }
+
+
         public DelegateCommand UpdateCmd {  get; set; }
         private void Update()
         {
             DeviceModel.SlaveId = SavleID;
-            DeviceModel.Timeout=TimeOut;
+            DeviceModel.ReadModel.ReadTimeout=TimeOut;
             DeviceModel.Function = SelectFunction;
             DeviceModel.PeriodTime = Interval;
+            DeviceModel.ReadModel.NumAdress = Number;
+            DeviceModel.ReadModel.StartAdress = StartAdress;
+            RequestClose.Invoke();
+        }
+
+        public DelegateCommand CloseCmd {  get; set; }
+        private void Close()
+        {
+            RequestClose.Invoke();
         }
         #endregion
     }

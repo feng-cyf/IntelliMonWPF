@@ -35,6 +35,10 @@
                 <TextBlock Text="ms" VerticalAlignment="Center"></TextBlock>
             </StackPanel>
             <TextBox md:HintAssist.Hint="从站ID " VerticalAlignment="Center" Margin="0 5" Width="300" HorizontalAlignment="Left" Text="{Binding SalveID}"></TextBox>
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="Function:" VerticalAlignment="Center"></TextBlock>
+                <ComboBox VerticalAlignment="Center" Width="240" ItemsSource="{Binding FunctionList}" SelectedItem="{Binding SelectFunction}" DisplayMemberPath="Value"></ComboBox>
+            </StackPanel>
         </StackPanel>
 
         <!-- 配置内容区域 -->

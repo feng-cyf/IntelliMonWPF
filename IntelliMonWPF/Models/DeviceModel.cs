@@ -8,6 +8,10 @@ namespace IntelliMonWPF.Models
 {
     internal class DeviceModel : INotifyPropertyChanged
     {
+        public DeviceModel()
+        {
+            ReadModel=new ReadModel();
+        }
         // ----------- 不常变化的属性（保持自动属性） -------------
         public string DeviceName { get; set; }
         public string Name { get; set; }
@@ -16,6 +20,7 @@ namespace IntelliMonWPF.Models
         public object Config { get; set; }
         public IModbusReadChannel Channel { get; set; }  // 设备的接口实现
         public ModbusEnum.Modbus Protocol { get; set; } // 协议类型
+        public ReadModel ReadModel { get; set; }
         public ModbusEnum.SerialPortType SerialPortType { get; set; }
 
         // ----------- 需要通知 UI 的属性 -------------
@@ -25,13 +30,7 @@ namespace IntelliMonWPF.Models
             get => _slaveId;
             set { if (_slaveId != value) { _slaveId = value; OnPropertyChanged(nameof(SlaveId)); } }
         }
-
-        private int _timeout = 2;
-        public int Timeout
-        {
-            get => _timeout;
-            set { if (_timeout != value) { _timeout = value; OnPropertyChanged(nameof(Timeout)); } }
-        }
+        
 
         private int _periodTime;
         public int PeriodTime

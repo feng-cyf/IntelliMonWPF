@@ -12,7 +12,6 @@ namespace IntelliMonWPF.Interface.Ichannel
     {
         bool IsConnected { get; }
         Task OpenAsyance(DeviceModel deviceModel);
-        Task ReadAsyance();
         Task CloseAsyance();
         event Action<byte[]> DataReceived;
         Task SendAsyance<T>(T data);

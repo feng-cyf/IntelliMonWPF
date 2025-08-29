@@ -49,9 +49,45 @@
                     VerticalAlignment="Center"/>
                 <TextBox 
                     Width="150" 
-                    VerticalAlignment="Center" Text="{Binding SavleID}"/>
+                    VerticalAlignment="Center" 
+                    Text="{Binding SavleID}"/>
+                <!-- 修正拼写错误 -->
             </StackPanel>
 
+            <!-- 起始地址 -->
+            <StackPanel 
+                Orientation="Horizontal" 
+                Margin="0 0 0 10"
+                MinHeight="30"
+                VerticalAlignment="Center">
+                <TextBlock 
+                    Text="Start Address:" 
+                    FontSize="14" 
+                    Width="100"
+                    VerticalAlignment="Center"/>
+                <TextBox 
+                    Width="150" 
+                    VerticalAlignment="Center" 
+                    Text="{Binding StartAdress}"/>
+            </StackPanel>
+
+            <!-- 读取数量 -->
+            <StackPanel 
+                Orientation="Horizontal" 
+                Margin="0 0 0 10"
+                MinHeight="30"
+                VerticalAlignment="Center">
+                <TextBlock 
+                    Text="Read Count:" 
+                    FontSize="14" 
+                    Width="100"
+                    VerticalAlignment="Center"/>
+                <TextBox 
+                    Width="150" 
+                    VerticalAlignment="Center" 
+                    Text="{Binding Number}"/>
+            </StackPanel>
+           
             <!-- 超时设置 -->
             <StackPanel 
                 Orientation="Horizontal" 
@@ -59,13 +95,14 @@
                 MinHeight="30"
                 VerticalAlignment="Center">
                 <TextBlock 
-                    Text="Time Out:" 
+                    Text="Read Timeout:" 
                     FontSize="14" 
                     Width="100"
                     VerticalAlignment="Center"/>
                 <TextBox 
                     Width="150" 
-                    VerticalAlignment="Center" Text="{Binding TimeOut}"/>
+                    VerticalAlignment="Center" 
+                    Text="{Binding TimeOut}"/>
             </StackPanel>
 
             <!-- 轮询间隔 -->
@@ -81,11 +118,15 @@
                     VerticalAlignment="Center"/>
                 <TextBox 
                     Width="150" 
-                    VerticalAlignment="Center" Text="{Binding Interval}"/>
+                    VerticalAlignment="Center" 
+                    Text="{Binding Interval}"/>
             </StackPanel>
-            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                <Button Content="Ok" Margin="30 0" Width="100" Command="{Binding UpdateCmd}"></Button>
-                <Button Content="Canel" Width="100"></Button>
+
+            <!-- 按钮区域 -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0 20 0 0">
+                <Button Content="Ok" Margin="0 0 20 0" Width="100" Command="{Binding UpdateCmd}"/>
+                <Button Content="Cancel" Width="100" Command="{Binding CloseCmd}"/>
+                <!-- 修正拼写错误并添加命令绑定 -->
             </StackPanel>
         </StackPanel>
     </Grid>
