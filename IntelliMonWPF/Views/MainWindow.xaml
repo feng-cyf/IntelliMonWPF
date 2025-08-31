@@ -9,7 +9,7 @@
        WindowStyle="None"
         AllowsTransparency="False"
         WindowStartupLocation="CenterScreen"
-        Height="1000" Width="1400">
+        Height="1000" Width="1500">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="50"/>

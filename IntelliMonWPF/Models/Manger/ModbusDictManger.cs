@@ -1,4 +1,5 @@
-﻿using System;
+﻿using IntelliMonWPF.Helper;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,8 +11,10 @@ using System.Windows;
 namespace IntelliMonWPF.Models.Manger
 {
      class ModbusDictManger
-    {
-        public ConcurrentQueue<string> MoudbusQueue { get; set; }=new ConcurrentQueue<string>();
+     {
+        public int locationPore { get; set; } = 1502;
+        private object _lock=new object();
+        public BoundedDeque<string> MoudbusQueue { get; set; }=new BoundedDeque<string>(500);
         public Dictionary<string,DeviceModel> ModbusMangeDict { get; set; } = new Dictionary<string, DeviceModel>();
         public ObservableCollection<DeviceModel> ModbusMangeList { get; set; } = new ObservableCollection<DeviceModel>();
         public void AddDevice(DeviceModel device)
@@ -39,5 +42,17 @@ namespace IntelliMonWPF.Models.Manger
            
         }
 
+        public void Remove(DeviceModel deviceModel)
+        {
+            ModbusMangeDict.Remove(deviceModel.ConnectionString);
+            ModbusMangeList.Remove(deviceModel);
+        }
+        public int LocationPort()
+        {
+            lock (_lock)
+            {
+                return locationPore++;
+            }
+        }
     }
 }

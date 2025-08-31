@@ -8,13 +8,16 @@
              Height="500" Width="600">
     <Grid>
         <ListBox x:Name="PackListBox" 
-            ItemsSource="{Binding PackList}" 
-            VirtualizingPanel.IsVirtualizing="True"
-            VirtualizingPanel.VirtualizationMode="Recycling"
-            ScrollViewer.CanContentScroll="True">
+                ItemsSource="{Binding PackList}" 
+                VirtualizingPanel.IsVirtualizing="True"
+                SelectionMode="Extended"
+                KeyDown="PackListBox_KeyDown"
+                VirtualizingPanel.VirtualizationMode="Recycling"
+                ScrollViewer.CanContentScroll="True">
             <ListBox.ItemTemplate>
                 <DataTemplate>
-                    <TextBlock Text="{Binding}" />
+                    <TextBlock Text="{Binding}"
+                        TextWrapping="NoWrap" />
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>

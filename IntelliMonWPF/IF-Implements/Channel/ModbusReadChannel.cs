@@ -26,7 +26,8 @@ namespace IntelliMonWPF.IF_Implements.Channel
         private TcpClient TcpClient;
         private ModbusMaster master;
         private DispatcherTimer timer;
-
+        private TcpPack tcppack;
+        private event Action Closer;
         public bool IsConnected
         {
             get
@@ -52,6 +53,15 @@ namespace IntelliMonWPF.IF_Implements.Channel
 
         public async Task CloseAsyance()
         {
+            modbusSniffer.Stop();
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
+            if (timer!=null && timer.IsEnabled)
+            {
+                timer.Stop();
+                timer = null;
+            }
             try
             {
                 if (SerialPort != null)
@@ -66,7 +76,9 @@ namespace IntelliMonWPF.IF_Implements.Channel
                 {
                     if (TcpClient.Connected)
                         TcpClient.Close();
+                        TcpClient.Dispose();
                     TcpClient = null;
+                    tcpPack.Stop();
                 }
 
                 master = null;
@@ -85,6 +97,22 @@ namespace IntelliMonWPF.IF_Implements.Channel
                     await OpenTcpAsync(deviceModel);
                     break;
             }
+            timer = new DispatcherTimer();
+
+            timer.Tick += async (s, e) =>
+            {
+                if (_isReading) return;
+                _isReading = true;
+                try
+                {
+                    await ReadAsyance(deviceModel);
+                }
+                finally
+                {
+                    _isReading = false;
+                }
+            };
+            timer.Start();
         }
         private bool _isReading = false;
         private async Task OpenSerialAsync(DeviceModel deviceModel)
@@ -114,8 +142,8 @@ namespace IntelliMonWPF.IF_Implements.Channel
                 ModbusDictManger modbusDictManger = ContainerLocator.Container.Resolve<ModbusDictManger>();
                 SerialPort.Open();
                 SerialPort.ReadTimeout = 1000;
-                var logSerialPort = new LoggingSerialResource(SerialPort,modbusDictManger);
-               
+                var logSerialPort = new LoggingSerialResource(SerialPort, modbusDictManger);
+
                 if (SerialPort.IsOpen)
                 {
                     master = deviceModel.SerialPortType switch
@@ -130,24 +158,11 @@ namespace IntelliMonWPF.IF_Implements.Channel
             {
                 MessageBox.Show($"串口打开失败: {ex.Message}");
             }
-            timer = new DispatcherTimer();
+           
 
-            timer.Tick += async (s, e) =>
-            {
-                if (_isReading) return;
-                    _isReading = true;
-                try
-                {
-                    await ReadAsyance(deviceModel);
-                }
-                finally
-                {
-                    _isReading = false;
-                }
-            };
-            timer.Start();
-            
         }
+        private TcpPack tcpPack=new TcpPack();
+        private ModbusSniffer modbusSniffer;
 
         private async Task OpenTcpAsync(DeviceModel deviceModel, int timeoutSeconds = 3)
         {
@@ -157,15 +172,15 @@ namespace IntelliMonWPF.IF_Implements.Channel
                 return;
             }
 
-            await CloseAsyance(); // 确保之前连接关闭
-
-            TcpClient = new TcpClient();
-
-            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
-
+            ModbusDictManger modbusDictManger= ContainerLocator.Container.Resolve<ModbusDictManger>();
+            modbusSniffer = new ModbusSniffer();
             try
             {
-                await TcpClient.ConnectAsync(tcpClientModel.Ip, tcpClientModel.Port);
+                TcpClient = modbusSniffer.CreateProxy(localPort: modbusDictManger.LocationPort(),
+                                       remoteIp: tcpClientModel.Ip,
+                                       remotePort: tcpClientModel.Port,
+                                       modbusDictManger);
+                master = ModbusIpMaster.CreateIp(TcpClient);
 
             }
             catch (Exception ex)
@@ -175,76 +190,121 @@ namespace IntelliMonWPF.IF_Implements.Channel
                 return;
             }
         }
-         
-        private async Task<T> RunWithTimeoutAsync<T>(Task<T> task ,DeviceModel deviceModel)
+
+        /*================= 公共字段 =================*/
+        private int _emptyReadCount = 0;
+        private const int MaxEmptyRead = 3;
+        private CancellationTokenSource _cts;
+        /*================= 唯一超时包装器 =================*/
+        private async Task<T> RunWithTimeoutAsync<T>(Task<T> task, DeviceModel dm)
         {
-            bool NotRead = false;
-            int timeoutMilliseconds=deviceModel.ReadModel.ReadTimeout==0? 3000:deviceModel.ReadModel.ReadTimeout;
-            var delayTask = Task.Delay(timeoutMilliseconds);
+            if (_cts != null)
+            {
+                _cts.Cancel();
+                _cts.Dispose(); 
+            }
+            _cts = new CancellationTokenSource();
 
-            var completed = await Task.WhenAny(task, delayTask);
+            int timeout = dm.ReadModel.ReadTimeout == 0 ? 3100 : dm.ReadModel.ReadTimeout;
+            _cts.CancelAfter(timeout);
 
-            if (completed == delayTask)
+            // 使用带取消令牌的延迟任务
+            var delay = Task.Delay(Timeout.Infinite, _cts.Token);
+
+            var completedTask = await Task.WhenAny(task, delay);
+
+            if (completedTask == delay)
             {
-                MessageBox.Show("操作超时");
-                return default; 
+                dm.Status = "超时";
+                goto REBUILD;
             }
-            
-            try
+            else
             {
-                return await task;
-            }
-            catch (SlaveException ex)
-            {
-                NotRead= true;
-                return default; 
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"操作失败：{ex.Message}");
-                return default;
-            }
-            finally
-            {
-                if (NotRead)
+                try
                 {
-                    deviceModel.Status = "异常";
+                    var result = await task;
+
+                    if (result is Array arr && arr.Length == 0)
+                    {
+                        _emptyReadCount++;
+                        if (_emptyReadCount >= MaxEmptyRead)
+                        {
+                            dm.Status = "异常-空读";
+                            goto REBUILD;
+                        }
+                    }
+                    else
+                    {
+                        _emptyReadCount = 0;
+                        dm.Status = "已连接";
+                    }
+                    return result;
                 }
-                else
+                catch (SlaveException)
                 {
-                    deviceModel.Status = "已连接";
+                    dm.Status = "从站异常";
+                }
+                catch (Exception ex)
+                {
+                    throw;
+                    dm.Status = $"异常-{ex.GetType().Name}";
+                    goto REBUILD;
                 }
             }
+
+        REBUILD:
+            _emptyReadCount = 0;
+            await RebuildMasterAsync(dm);
+            return default;
         }
 
 
-
-        public async Task ReadAsyance(DeviceModel deviceModel)
+        /*================= ReadAsyance：一行搞定 =================*/
+        public async Task ReadAsyance(DeviceModel dm)
         {
-            timer.Interval=TimeSpan.FromMilliseconds(deviceModel.PeriodTime);
-            if (IsConnected)
+            timer.Interval = TimeSpan.FromMilliseconds(dm.PeriodTime);
+            if (!IsConnected) return;
+
+            byte id = Convert.ToByte(dm.SlaveId);
+            ushort addr = (ushort)dm.ReadModel.StartAdress;
+            ushort cnt = (ushort)dm.ReadModel.NumAdress;
+
+            switch (dm.Function.Key)
             {
-                byte SlaveId = Convert.ToByte(deviceModel.SlaveId);
-                ushort StatrAdress = BitConverter.ToUInt16(BitConverter.GetBytes(deviceModel.ReadModel.StartAdress));
-                ushort ReadCount = BitConverter.ToUInt16(BitConverter.GetBytes(deviceModel.ReadModel.NumAdress));
+                case "01": await RunWithTimeoutAsync(master.ReadCoilsAsync(id, addr, cnt), dm); break;
+                case "02": await RunWithTimeoutAsync(master.ReadInputsAsync(id, addr, cnt), dm); break;
+                case "03":var a= await RunWithTimeoutAsync(master.ReadHoldingRegistersAsync(id, addr, cnt), dm); 
+                    break;
+                case "04": await RunWithTimeoutAsync(master.ReadInputRegistersAsync(id, addr, cnt), dm); break;
+            }
+        }
 
-                switch (deviceModel.Function.Key)
+        /*================= 串口+Master 重建 =================*/
+        private async Task RebuildMasterAsync(DeviceModel dm)
+        {
+            master?.Dispose();
+            master = null;
+
+            try
+            {
+                if (dm.Protocol == ModbusEnum.Modbus.SerialPort)
                 {
-                    case "01":
-                        bool[] status= await RunWithTimeoutAsync(master.ReadCoilsAsync(SlaveId, StatrAdress, ReadCount),deviceModel);
-                        break;
-                    case "02":
-                        bool[] Inputs = await RunWithTimeoutAsync(master.ReadInputsAsync(SlaveId, StatrAdress, ReadCount), deviceModel);
-                        break;
-                    case "03":
-                        ushort[] RWRegister = await RunWithTimeoutAsync(master.ReadHoldingRegistersAsync(SlaveId, StatrAdress, ReadCount), deviceModel);
-                        break;
-                    case "04":
-                        ushort[] result = await RunWithTimeoutAsync(master.ReadInputRegistersAsync(SlaveId, StatrAdress, ReadCount), deviceModel);
-                        break;
-                }
-                
+                    // 先关再开，彻底清缓存
+                    if (SerialPort != null && SerialPort.IsOpen)
+                        SerialPort.Close();
+                    SerialPort?.Dispose();
 
+                    await OpenSerialAsync(dm);   // 复用你已有的方法
+                }
+                else
+                {
+                    /* TCP 同理 */
+                    await OpenTcpAsync(dm);
+                }
+            }
+            catch (Exception ex)
+            {
+                dm.Status = $"重建失败-{ex.Message}";
             }
         }
 

@@ -21,7 +21,7 @@ namespace IntelliMonWPF.ViewModels.DialogsViewModels
         public void OnDialogClosed()
         {
              _timer.Stop();
-             
+            PackList.Clear();
         }
 
         public void OnDialogOpened(IDialogParameters parameters)
@@ -38,7 +38,7 @@ namespace IntelliMonWPF.ViewModels.DialogsViewModels
 
             _timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromMilliseconds(200)
+                Interval = TimeSpan.FromMilliseconds(500)
             };
             _timer.Tick += (s, e) => OnAddPack();
             _timer.Start();

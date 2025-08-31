@@ -67,6 +67,7 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
                     .Where(ip => ip.AddressFamily == AddressFamily.InterNetwork || (ip.Equals(IPAddress.Loopback)))
                     .Select(ip => ip.ToString())
             );
+            IpAdressList.Add("127.0.0.1");
             
         }
 
@@ -159,7 +160,7 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
                 SerialPortType = SerialPortType == true ? ModbusEnum.SerialPortType.RTU : ModbusEnum.SerialPortType.ASCII,
                 Type = SerialPortType == true ? "RTUModbus" : "ASCIIModbus",
                 Port=0,PeriodTime=Convert.ToInt32(PeriodTime),
-                ConnectionString="串口",SlaveId=Convert.ToInt32(SalveID),Function=SelectFunction
+                ConnectionString=$"{ SelectPortName }",SlaveId=Convert.ToInt32(SalveID),Function=SelectFunction
             };
             deviceModel.Channel.OpenAsyance(deviceModel);
             if (deviceModel.Channel.IsConnected)

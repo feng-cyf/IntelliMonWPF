@@ -38,7 +38,7 @@ namespace IntelliMonWPF.ViewModels
             NavigationItems = new List<NavigationItem>
             {
             new NavigationItem { Title = "设备管理", ViewName = "DeviceManagementUC", Icon = "\uE871" },
-            new NavigationItem { Title = "点表配置", ViewName = "PointConfigurationView", Icon = "\uE8A5" },
+            new NavigationItem { Title = "点表配置", ViewName = "ModbusPointConfigControl", Icon = "\uE8A5" },
             new NavigationItem { Title = "实时监控", ViewName = "RealtimeMonitoringView", Icon = "\uE8B0" },
             new NavigationItem { Title = "员工管理", ViewName = "EmployeeManagementView", Icon = "\uE774" },
             new NavigationItem { Title = "系统设置", ViewName = "SystemSettingsView", Icon = "\uE713" }
@@ -65,6 +65,17 @@ namespace IntelliMonWPF.ViewModels
                         _navigationJournal = result.Context.NavigationService.Journal;
                     }
                 });
+                _regionManager.Regions["Regions"].NavigationService.Navigated += (s, e) =>
+                {
+                    var currentView = e.Uri.OriginalString;
+
+                    var match = NavigationItems.FirstOrDefault(x => x.ViewName == currentView);
+                    if (match != null)
+                    {
+                        SelectedNavigationItem = match;
+                    }
+                };
+
             }
         }
 

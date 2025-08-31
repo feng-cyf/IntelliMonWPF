@@ -32,6 +32,7 @@ namespace IntelliMonWPF
             containerRegistry.RegisterForNavigation<DeviceManagementUC, DeviceManagementUCViewModel>();
             containerRegistry.RegisterSingleton<ModbusDictManger>();
             containerRegistry.RegisterDialog<EditDeviceUC, EditDeviceUCViewModel>();
+            containerRegistry.RegisterForNavigation<ModbusPointConfigControl, ModbusPointConfigControlViewModel>();
         }
         //protected override void OnInitialized()
         //{

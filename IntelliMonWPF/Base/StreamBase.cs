@@ -1,140 +1,146 @@
 ﻿using IntelliMonWPF.Models.Manger;
 using Modbus.IO;
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.IO.Ports;
+using System.Linq;
+using System.Threading;
 
-internal class LoggingSerialResource : IStreamResource
+internal class LoggingSerialResource : IStreamResource, IDisposable
 {
     private readonly SerialPort _serialPort;
-    private readonly ModbusDictManger modbusDictManger;
-    private List<byte> _rxBuffer = new List<byte>();
+    private readonly ModbusDictManger _modbusDictManger;
+
+    /* 接收缓冲区 & 3.5T 计时 */
+    private readonly List<byte> _rxBuffer = new();
+    private DateTime _lastRxTime = DateTime.MinValue;
+    private readonly double _char3_5T;          // 3.5 字符时间(ms)
+    private readonly Timer _frameTimer;         // 轮询帧结束
 
     public LoggingSerialResource(SerialPort serialPort, ModbusDictManger dictManger)
     {
-        _serialPort = serialPort;
-        modbusDictManger = dictManger;
+        _serialPort = serialPort ?? throw new ArgumentNullException(nameof(serialPort));
+        _modbusDictManger = dictManger;
+
+        /* 计算 3.5 字符时间：11 bit/字符 × 3.5 */
+        _char3_5T = 11.0 * 3.5 * 1000 / _serialPort.BaudRate;
+
+        /* 10 ms 轮询一次是否静默超时 */
+        _frameTimer = new Timer(OnFrameTimeout, null, 0, 10);
     }
 
+    /*------------------------------------------------
+     * IStreamResource 实现
+     *------------------------------------------------*/
     public int Read(byte[] buffer, int offset, int count)
     {
-        int n = _serialPort.BaseStream.Read(buffer, offset, count);
-        if (n > 0)
+        try
         {
-            // 把本次收到的字节加入缓存
-            for (int i = 0; i < n; i++)
-                _rxBuffer.Add(buffer[offset + i]);
+            if (_serialPort == null || !_serialPort.IsOpen)
+                return 0;
 
-            // 循环尝试提取完整帧
-            while (TryExtractFrame(out var frame))
+            int n = _serialPort.BaseStream.Read(buffer, offset, count);
+            if (n > 0)
             {
-                modbusDictManger.MoudbusQueue.Enqueue("RX: " + BitConverter.ToString(frame));
+                lock (_rxBuffer)
+                {
+                    _rxBuffer.AddRange(buffer.Skip(offset).Take(n));
+                    _lastRxTime = DateTime.Now;
+                }
             }
+            return n;
         }
-        return n;
+        catch (TimeoutException)
+        {
+            return 0;
+        }
+        catch (OperationCanceledException)
+        {
+            return 0;
+        }
+        catch (InvalidOperationException)
+        {
+            // 串口已关闭或 BaseStream 不可用
+            return 0;
+        }
     }
 
-    private bool TryExtractFrame(out byte[] frame)
+    public void Write(byte[] buffer, int offset, int count)
     {
-        frame = null;
+        var tx = buffer.Skip(offset).Take(count).ToArray();
+        _modbusDictManger.MoudbusQueue.Add("TX: " + BitConverter.ToString(tx));
+        _serialPort.BaseStream.Write(buffer, offset, count);
+    }
 
-        // 至少要有 5 字节（地址+功能码+最小 PDU+CRC）
-        if (_rxBuffer.Count < 5) return false;
+    public void DiscardInBuffer() => _serialPort.DiscardInBuffer();
+    public void Dispose()
+    {
+        _frameTimer?.Dispose();
+        _serialPort?.Dispose();
+    }
 
-        // 根据功能码算 PDU 长度
-        byte func = _rxBuffer[1];
-        int pduLen;
-        switch (func)
+    public int InfiniteTimeout => -1;
+    public int ReadTimeout
+    {
+        get => _serialPort.ReadTimeout;
+        set => _serialPort.ReadTimeout = value;
+    }
+    public int WriteTimeout
+    {
+        get => _serialPort.WriteTimeout;
+        set => _serialPort.WriteTimeout = value;
+    }
+
+    /*------------------------------------------------
+     * 3.5T 超时后解析整帧
+     *------------------------------------------------*/
+    private void OnFrameTimeout(object _)
+    {
+        lock (_rxBuffer)
         {
-            case 0x01 or 0x02 or 0x03 or 0x04:
-                if (_rxBuffer.Count < 3) return false;
-                pduLen = 2 + 1 + _rxBuffer[2];   // 2 字节头 + 1 字节字节计数 + 数据
-                break;
+            if (_rxBuffer.Count == 0) return;
 
-            case 0x05 or 0x06:                 // 写单线圈/寄存器
-                pduLen = 2 + 2;                // 固定 4 字节
-                break;
+            /* 是否已静默足够长时间 */
+            if ((DateTime.Now - _lastRxTime).TotalMilliseconds < _char3_5T)
+                return;
 
-            case 0x0F or 0x10:                // 写多线圈/寄存器
-                if (_rxBuffer.Count < 7) return false;
-                pduLen = 2 + 2 + 2 + 1 + _rxBuffer[6];   // 起始+数量+字节计数+数据
-                break;
-
-            default:
-                // 未知功能码，直接整帧清空，避免死循环
-                _rxBuffer.Clear();
-                return false;
-        }
-
-        int total = 1 + 1 + pduLen + 2;       // 地址+功能码+pdu+crc
-        if (_rxBuffer.Count < total) return false;
-
-        var candidate = _rxBuffer.Take(total).ToArray();
-
-        if (!CheckCrc(candidate))
-        {
-            // 找不到帧头，直接清空
+            var frame = _rxBuffer.ToArray();
             _rxBuffer.Clear();
-            return false;
-        }
 
-        frame = candidate;
-        _rxBuffer.RemoveRange(0, total);
-        return true;
+            /* CRC 校验 */
+            if (frame.Length >= 5 && CheckCrc(frame))
+            {
+                _modbusDictManger.MoudbusQueue.Add("RX: " + BitConverter.ToString(frame));
+            }
+            /* CRC 错误 -> 直接丢弃整包，避免死循环 */
+        }
     }
 
-    private bool CheckCrc(byte[] frame)
+    /*------------------------------------------------
+     * CRC16-Modbus
+     *------------------------------------------------*/
+    private static bool CheckCrc(byte[] frame)
     {
-        if (frame.Length < 3) return false;
-        ushort calc = Crc16(frame, frame.Length - 2);
+        int len = frame.Length;
+        if (len < 3) return false;
+
+        ushort calc = Crc16(frame, len - 2);
         ushort recv = (ushort)(frame[^1] << 8 | frame[^2]);
         return calc == recv;
     }
 
-    private ushort Crc16(byte[] data, int length)
+    private static ushort Crc16(byte[] data, int length)
     {
-        const ushort polynomial = 0xA001;
+        const ushort poly = 0xA001;
         ushort crc = 0xFFFF;
 
         for (int i = 0; i < length; i++)
         {
             crc ^= data[i];
             for (int j = 0; j < 8; j++)
-            {
-                if ((crc & 0x0001) != 0)
-                    crc = (ushort)((crc >> 1) ^ polynomial);
-                else
-                    crc >>= 1;
-            }
+                crc = (crc & 1) != 0 ? (ushort)((crc >> 1) ^ poly) : (ushort)(crc >> 1);
         }
-
         return crc;
-    }
-
-
-
-    public void Write(byte[] buffer, int offset, int count)
-    {
-        var data = new byte[count];
-        Array.Copy(buffer, offset, data, 0, count);
-        Console.WriteLine("TX: " + BitConverter.ToString(data));
-
-        _serialPort.BaseStream.Write(buffer, offset, count);
-    }
-
-    public void DiscardInBuffer() => _serialPort.DiscardInBuffer();
-    public void Dispose() => _serialPort.Dispose();
-
-    public int InfiniteTimeout => -1;
-
-    public int ReadTimeout
-    {
-        get => _serialPort.ReadTimeout;
-        set => _serialPort.ReadTimeout = value;
-    }
-
-    public int WriteTimeout
-    {
-        get => _serialPort.WriteTimeout;
-        set => _serialPort.WriteTimeout = value;
     }
 }
