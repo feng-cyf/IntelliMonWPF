@@ -30,15 +30,7 @@
             <TextBlock Text="Connection" FontWeight="SemiBold" Margin="0,5,0,2"/>
             <ComboBox SelectedItem="{Binding SelectModbus}" x:Name="cboConnection" Width="200" SelectionChanged="cboConnection_SelectionChanged" ItemsSource="{Binding Modbus}" DisplayMemberPath="Value" SelectedValuePath="Key">
             </ComboBox>
-            <StackPanel Orientation="Horizontal">
-                <TextBox md:HintAssist.Hint="轮询时间 " VerticalAlignment="Center" Margin="0 5" Width="300" HorizontalAlignment="Left" Text="{Binding PeriodTime}"></TextBox>
-                <TextBlock Text="ms" VerticalAlignment="Center"></TextBlock>
-            </StackPanel>
-            <TextBox md:HintAssist.Hint="从站ID " VerticalAlignment="Center" Margin="0 5" Width="300" HorizontalAlignment="Left" Text="{Binding SalveID}"></TextBox>
-            <StackPanel Orientation="Horizontal">
-                <TextBlock Text="Function:" VerticalAlignment="Center"></TextBlock>
-                <ComboBox VerticalAlignment="Center" Width="240" ItemsSource="{Binding FunctionList}" SelectedItem="{Binding SelectFunction}" DisplayMemberPath="Value"></ComboBox>
-            </StackPanel>
+            
         </StackPanel>
 
         <!-- 配置内容区域 -->

@@ -57,7 +57,14 @@ namespace IntelliMonWPF.Base
             var t1 = CopyLog(m2s, s2m, "→ Slave", token);
             var t2 = CopyLog(s2m, m2s, "← Slave", token);
 
-            await Task.WhenAny(t1, t2);
+            try
+            {
+                await Task.WhenAll(t1, t2);
+            }
+            catch (Exception ex)
+            {
+                _modbusDictManger.MoudbusQueue.Add($"连接异常: {ex.Message}");
+            }
         }
 
         private async Task CopyLog(NetworkStream from, NetworkStream to, string dir, CancellationToken token)
@@ -76,10 +83,15 @@ namespace IntelliMonWPF.Base
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = null;
-            _listener?.Stop();
-            _listener?.Dispose();
-            _listener = null;
+
+            if (_listener != null)
+            {
+                _listener.Stop();
+                _listener.Dispose();
+                _listener = null;
+            }
         }
+
 
         public void Dispose()
         {

@@ -1,5 +1,6 @@
 ﻿using IntelliMonWPF.DTOs;
 using IntelliMonWPF.HttpClient;
+using IntelliMonWPF.Interface;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -27,10 +28,12 @@ namespace IntelliMonWPF.ViewModels
         {
            
         }
-        public LoginUCViewModel(IDialogService dialogService)
+        private IMessages messages;
+        public LoginUCViewModel(IDialogService dialogService,IMessages messages)
         {
             RequestClose = new DialogCloseListener();
             this.dialogService = dialogService;
+            this.messages = messages;
         }
 
         private string _Username;
@@ -56,11 +59,11 @@ namespace IntelliMonWPF.ViewModels
         {
             if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Pwd))
             {
-                MessageBox.Show("用户名或密码不能为空");
+               messages.ShowMessage("用户名或密码不能为空");
                 return;
             }
             
-            var loginResponse = apiClient.Excute<UserInfo, LoginDTO>(new ApiRequest<LoginDTO>
+            var ApiResponse = apiClient.Excute<UserInfo, LoginDTO>(new ApiRequest<LoginDTO>
             {
                 Route = "login",
                 Method = RestSharp.Method.Post,
@@ -70,19 +73,19 @@ namespace IntelliMonWPF.ViewModels
                     password = Pwd
                 }
             });
-            if (loginResponse.code == 200)
+            if (ApiResponse.code == 200)
             {
 
                 // 关闭对话框并传递结果
                 var parameters = new DialogParameters
                 {
-                    { "userInfo", loginResponse.data }
+                    { "userInfo", ApiResponse.data }
                 };
                 RequestClose.Invoke(parameters,ButtonResult.OK);
             }
             else
             {
-                MessageBox.Show($"登陆失败: {loginResponse.message}");
+               messages.ShowMessage($"登陆失败: {ApiResponse.message}");
             }
         });
         private IDialogService dialogService { get; set; }
@@ -92,7 +95,7 @@ namespace IntelliMonWPF.ViewModels
             {
                 if (r != null && r.Result == ButtonResult.OK)
                 {
-                    MessageBox.Show("注册成功，请登录");
+                   messages.ShowMessage("注册成功，请登录");
                 }
             }); 
         });

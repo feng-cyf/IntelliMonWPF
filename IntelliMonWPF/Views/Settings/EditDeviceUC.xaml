@@ -16,7 +16,10 @@
                 FontWeight="Bold" 
                 Margin="0 0 0 20"
                 Padding="0 5"/>
-
+            <StackPanel Orientation="Horizontal" Margin=" 0 10">
+                <TextBlock Text="DeviceName:"></TextBlock>
+                <TextBlock Margin="30 0" Text="{Binding DeviceName}"></TextBlock>
+            </StackPanel>
             <!-- 功能选择 -->
             <StackPanel 
                 Margin="0 0 0 10" 
@@ -88,23 +91,6 @@
                     Text="{Binding Number}"/>
             </StackPanel>
            
-            <!-- 超时设置 -->
-            <StackPanel 
-                Orientation="Horizontal" 
-                Margin="0 0 0 10"
-                MinHeight="30"
-                VerticalAlignment="Center">
-                <TextBlock 
-                    Text="Read Timeout:" 
-                    FontSize="14" 
-                    Width="100"
-                    VerticalAlignment="Center"/>
-                <TextBox 
-                    Width="150" 
-                    VerticalAlignment="Center" 
-                    Text="{Binding TimeOut}"/>
-            </StackPanel>
-
             <!-- 轮询间隔 -->
             <StackPanel 
                 Orientation="Horizontal" 

@@ -1,4 +1,6 @@
 ﻿using IntelliMonWPF.Helper;
+using IntelliMonWPF.Interface;
+using Prism.Ioc;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -17,35 +19,26 @@ namespace IntelliMonWPF.Models.Manger
         public BoundedDeque<string> MoudbusQueue { get; set; }=new BoundedDeque<string>(500);
         public Dictionary<string,DeviceModel> ModbusMangeDict { get; set; } = new Dictionary<string, DeviceModel>();
         public ObservableCollection<DeviceModel> ModbusMangeList { get; set; } = new ObservableCollection<DeviceModel>();
+        private IMessages messages = ContainerLocator.Container.Resolve<IMessages>();
         public void AddDevice(DeviceModel device)
         {
-            var conflict = ModbusMangeList.Any(d =>
-                          d.ConnectionString == device.ConnectionString &&
-                          d.Port == device.Port &&
-                          d.SlaveId == device.SlaveId);
-
-            if (conflict)
+            
+            if (ModbusMangeDict.ContainsKey(device.DeviceName))
             {
-                MessageBox.Show($"在 {device.ConnectionString}:{device.Port} 下，SlaveId={device.SlaveId} 已经存在！");
+               messages.ShowMessage($"{device.DeviceName}已经存在");
                 return;
             }
-            if (ModbusMangeDict.ContainsKey(device.ConnectionString))
-            {
-                MessageBox.Show($"{device.ConnectionString}已经存在");
-                return;
-            }
-            ModbusMangeDict.Add(device.ConnectionString, device);
+            ModbusMangeDict.Add(device.DeviceName, device);
             ModbusMangeList.Add(device);
         }
         public void UpgradeDevice() 
         {
            
         }
-
-        public void Remove(DeviceModel deviceModel)
+        public void Remove(string Name,int id,ReadModel readModel) 
         {
-            ModbusMangeDict.Remove(deviceModel.ConnectionString);
-            ModbusMangeList.Remove(deviceModel);
+            ModbusMangeDict[Name].readMangerModbus.Remove((Name,id));
+            ModbusMangeDict[Name].ReadModels.Remove(readModel);
         }
         public int LocationPort()
         {

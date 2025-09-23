@@ -12,20 +12,17 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-using static MaterialDesignThemes.Wpf.Theme;
 
 namespace IntelliMonWPF.Views
 {
     /// <summary>
-    /// DeviceManagementUC.xaml 的交互逻辑
+    /// AddDeviceModbusUC.xaml 的交互逻辑
     /// </summary>
-    public partial class DeviceManagementUC : UserControl
+    public partial class AddDeviceModbusUC : UserControl
     {
-        public DeviceManagementUC()
+        public AddDeviceModbusUC()
         {
             InitializeComponent();
-           
         }
-
     }
 }

@@ -1,4 +1,5 @@
-﻿using IntelliMonWPF.Models;
+﻿using IntelliMonWPF.Enum;
+using IntelliMonWPF.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,7 +11,7 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
 {
     internal class EditDeviceUCViewModel : BindableBase, IDialogAware
     {
-        private DeviceModel DeviceModel { get; set; }
+        private ReadModel ReadModel { get; set; }
         public DialogCloseListener RequestClose { get; }=new DialogCloseListener();
 
         public bool CanCloseDialog()
@@ -25,40 +26,49 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
 
         public void OnDialogOpened(IDialogParameters parameters)
         {
-            if (parameters.ContainsKey("DevicePar"))
+            if (parameters.ContainsKey("DeviceName") || parameters.ContainsKey("ReadModelPar"))
             {
-                DeviceModel = parameters.GetValue<DeviceModel>("DevicePar");
+                ReadModel = parameters.GetValue<ReadModel>("ReadModelPar");
+                DeviceName = parameters.GetValue<string>("DeviceName");
             }
 
             // ⚡ 从 FunctionList 里匹配，而不是直接赋值
-            var matched = FunctionList.FirstOrDefault(x => x.Key == DeviceModel.Function.Key);
-            if (!matched.Equals(default(KeyValuePair<string, string>)))
+            var matched = FunctionList.FirstOrDefault(x => x.Key == ReadModel.ModbusRead);
+            if (!matched.Equals(default(KeyValuePair<ModbusEnum.ModbusRead, string>)))
             {
                 SelectFunction = matched;
             }
 
-            SavleID = DeviceModel.SlaveId;
-            TimeOut = DeviceModel.ReadModel.ReadTimeout;
-            Interval = DeviceModel.PeriodTime;
-            StartAdress=DeviceModel.ReadModel.StartAdress;
-            Number=DeviceModel.ReadModel.NumAdress;
+            SavleID = ReadModel.SlaveId;
+            Interval = ReadModel.Interavel;
+            StartAdress = ReadModel.StartAddress;
+            Number = ReadModel.NumAddress;
         }
         public EditDeviceUCViewModel()
         {
             UpdateCmd=new DelegateCommand(Update);
             CloseCmd=new DelegateCommand(Close);
         }
+        private string _DeviceName;
+
+        public string DeviceName
+        {
+            get { return _DeviceName; }
+            set { _DeviceName = value;
+                RaisePropertyChanged();
+            }
+        }
 
         #region 参数设置
-        private ObservableCollection<KeyValuePair<string, string>> _FunctionList = new ObservableCollection<KeyValuePair<string, string>>
+        private ObservableCollection<KeyValuePair<ModbusEnum.ModbusRead, string>> _FunctionList = new ObservableCollection<KeyValuePair<ModbusEnum.ModbusRead, string>>
         {
-            new KeyValuePair<string, string>("01", "01 线圈状态读取"),
-            new KeyValuePair<string, string>("02", "02 输入线圈读取"),
-            new KeyValuePair<string, string>("03", "03 保持寄存器读取"),
-            new KeyValuePair<string, string>("04", "04 输入寄存器读取")
+            new KeyValuePair<ModbusEnum.ModbusRead, string>(ModbusEnum.ModbusRead.ReadCoils, "读取线圈状态 (Read Coils)"),
+            new KeyValuePair<ModbusEnum.ModbusRead, string>(ModbusEnum.ModbusRead.ReadInputCoils, "读取离散输入 (Read Discrete Inputs)"),
+            new KeyValuePair<ModbusEnum.ModbusRead, string>(ModbusEnum.ModbusRead.ReadRegisters, "读取保持寄存器 (Read Holding Registers)"),
+            new KeyValuePair<ModbusEnum.ModbusRead, string>(ModbusEnum.ModbusRead.ReadInputRegister, "读取输入寄存器 (Read Input Registers)")
         };
 
-        public ObservableCollection<KeyValuePair<string, string>> FunctionList
+        public ObservableCollection<KeyValuePair<ModbusEnum.ModbusRead, string>> FunctionList
         {
             get { return _FunctionList; }
             set { _FunctionList = value;
@@ -74,9 +84,9 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
                 RaisePropertyChanged();
             }
         }
-        private KeyValuePair<string,string> _SelectFunction;
+        private KeyValuePair<ModbusEnum.ModbusRead,string> _SelectFunction;
 
-        public KeyValuePair<string,string> SelectFunction
+        public KeyValuePair<ModbusEnum.ModbusRead,string> SelectFunction
         {
             get { return _SelectFunction; }
             set { _SelectFunction = value;
@@ -132,12 +142,11 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
         public DelegateCommand UpdateCmd {  get; set; }
         private void Update()
         {
-            DeviceModel.SlaveId = SavleID;
-            DeviceModel.ReadModel.ReadTimeout=TimeOut;
-            DeviceModel.Function = SelectFunction;
-            DeviceModel.PeriodTime = Interval;
-            DeviceModel.ReadModel.NumAdress = Number;
-            DeviceModel.ReadModel.StartAdress = StartAdress;
+            ReadModel.SlaveId = SavleID;
+            ReadModel.ModbusRead = SelectFunction.Key;
+            ReadModel.Interavel = Interval;
+            ReadModel.NumAddress = Number;
+            ReadModel.StartAddress = StartAdress;
             RequestClose.Invoke();
         }
 

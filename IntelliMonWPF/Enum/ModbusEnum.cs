@@ -21,5 +21,9 @@ namespace IntelliMonWPF.Enum
         {
             WriteSingleCoil, WriteSingleRegister, WriteMultipleCoils, WriteMultipleRegisters
         }
+        public enum ModbusRead
+        {
+            ReadInputCoils, ReadCoils, ReadRegisters, ReadInputRegister
+        }
     }
 }

@@ -15,5 +15,6 @@ namespace IntelliMonWPF.Interface.Ichannel
         Task CloseAsyance();
         event Action<byte[]> DataReceived;
         Task SendAsyance<T>(T data);
+        Task ReadAsyance(ReadModel readModel);
     }
 }

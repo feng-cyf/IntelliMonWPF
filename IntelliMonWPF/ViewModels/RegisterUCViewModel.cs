@@ -1,5 +1,6 @@
 ﻿using IntelliMonWPF.DTOs;
 using IntelliMonWPF.HttpClient;
+using IntelliMonWPF.Interface;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -39,10 +40,12 @@ namespace IntelliMonWPF.ViewModels
                 RaisePropertyChanged();
             }
         }
-        public RegisterUCViewModel()
+        private IMessages messages;
+        public RegisterUCViewModel(IMessages messages)
         {
             ShowJobName();
             RegisterCmd= new DelegateCommand(Register);
+            this.messages= messages;
         }
         private ApiClient apiClient = new ApiClient();
         public DelegateCommand RegisterCmd { get; set; }
@@ -50,12 +53,12 @@ namespace IntelliMonWPF.ViewModels
         {
             if (string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Pwd) || string.IsNullOrEmpty(ConfirmPwd))
             {
-                MessageBox.Show("请填写完整信息");
+               messages.ShowMessage("请填写完整信息");
                 return;
             }
             if (Pwd != ConfirmPwd)
             {
-                MessageBox.Show("两次密码输入不一致");
+               messages.ShowMessage("两次密码输入不一致");
                 return;
             }
             RegisterDTO registerDTO = new RegisterDTO()
@@ -73,11 +76,11 @@ namespace IntelliMonWPF.ViewModels
             var response = apiClient.Excute<string, RegisterDTO>(request);
             if (response != null && response.code == 200)
             {
-                MessageBox.Show("注册成功");
+               messages.ShowMessage("注册成功");
             }
             else
             {
-                MessageBox.Show("注册失败:" + response.message);
+               messages.ShowMessage("注册失败:" + response.message);
             } 
         }
         private string _Username;

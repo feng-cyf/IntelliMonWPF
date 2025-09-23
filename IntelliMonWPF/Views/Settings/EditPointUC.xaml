@@ -1,0 +1,183 @@
+﻿<UserControl x:Class="IntelliMonWPF.Views.Settings.EditPointUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:IntelliMonWPF.Views.Settings"
+             mc:Ignorable="d" 
+             Height="450" Width="400"
+             Background="#F8F9FA">
+    <Grid Margin="20">
+        <!-- 表单区域 -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0 0 0 20">
+                    <TextBlock Text="编辑Modbus点配置" FontSize="16" FontWeight="Bold" Foreground="#333333"/>
+                </StackPanel>
+
+                <!-- 第一行：设备名称 -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="设备名称:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <TextBox Grid.Column="1" Height="28" Padding="5" BorderBrush="#CCCCCC" 
+                              Text="{Binding SelectDeviceName}"
+                              IsEnabled="False"  
+                        ToolTip="关联的设备名称（不可修改）"/>
+                </Grid>
+
+                <!-- 第二行：从站地址 -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="从站地址:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <TextBox Text="{Binding SelectSlaveId}" Grid.Column="1" Height="28" 
+                              BorderBrush="#CCCCCC" 
+                              IsEnabled="False">
+                        <!-- 从站地址在编辑时不可修改 -->
+                    </TextBox>
+                </Grid>
+
+                <!-- 分割线 -->
+                <Border Height="1" Background="#E0E0E0" Margin="0 10 0 10"/>
+
+                <!-- 点基本信息 -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="点名称:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <TextBox Text="{Binding PointName}" Grid.Column="1" Height="28" Padding="5" 
+                             BorderBrush="#CCCCCC" IsEnabled="False" 
+                        ToolTip="点的唯一标识符（不可修改）"/>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="寄存器类型:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <TextBlock Margin="0 10 0 0" VerticalAlignment="Center" Grid.Column="1" Height="28" 
+                               Text="{Binding DeviceFuction}">
+                    </TextBlock>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="起始地址:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <TextBox Text="{Binding StartAddress}" Grid.Column="1" Height="28" Padding="5" 
+                             BorderBrush="#CCCCCC" InputScope="Number"
+                             IsEnabled="False"/>
+                    <!-- 起始地址不可修改 -->
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="长度:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <TextBox Text="{Binding Len}" Grid.Column="1" Height="28" Padding="5" 
+                             BorderBrush="#CCCCCC" InputScope="Number"
+                             IsEnabled="False"
+                        ToolTip="数据长度（字节数）（不可修改）"/>
+                </Grid>
+
+                <!-- 数据类型设置 -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="数据类型:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <ComboBox SelectedValuePath="Content" SelectedValue="{Binding DataType}" 
+                              Grid.Column="1" Height="28" BorderBrush="#CCCCCC">
+                        <ComboBoxItem Content="Bool"/>
+                        <ComboBoxItem Content="Int16"/>
+                        <ComboBoxItem Content="Int32"/>
+                        <ComboBoxItem Content="Float"/>
+                        <ComboBoxItem Content="Double"/>
+                    </ComboBox>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="读写权限:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <ComboBox SelectedValuePath="Content" IsReadOnly="True" 
+                              SelectedValue="{Binding AccessType}" Grid.Column="1" 
+                              Height="28" BorderBrush="#CCCCCC">
+                        <ComboBoxItem Content="Read Only"/>
+                        <ComboBoxItem Content="Write Only"/>
+                        <ComboBoxItem Content="Read/Write"/>
+                    </ComboBox>
+                </Grid>
+
+                <!-- 数据转换设置 -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="单位:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <TextBox Text="{Binding Unit}" Grid.Column="1" Height="28" Padding="5" 
+                             BorderBrush="#CCCCCC" 
+                             ToolTip="输入物理单位（如℃、m/s等）"/>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="缩放因子:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <TextBox Text="{Binding ScaleFactor}" Grid.Column="1" Height="28" Padding="5" 
+                             BorderBrush="#CCCCCC" InputScope="Number"
+                             ToolTip="数据转换缩放系数（默认1.0）"/>
+                </Grid>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="偏移量:" VerticalAlignment="Center" Foreground="#555555"/>
+                    <TextBox Text="{Binding Offset}" Grid.Column="1" Height="28" Padding="5" 
+                             BorderBrush="#CCCCCC" InputScope="Number"
+                             ToolTip="数据转换偏移值（默认0）"/>
+                </Grid>
+
+                <!-- 描述信息 -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="100"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Content="描述:" VerticalAlignment="Top" Margin="0,5,0,0" Foreground="#555555"/>
+                    <TextBox Text="{Binding Desc}" Grid.Column="1" Height="60" Padding="5" 
+                             BorderBrush="#CCCCCC" AcceptsReturn="True" TextWrapping="Wrap"
+                             ToolTip="输入点的详细描述信息"/>
+                </Grid>
+
+                <!-- 操作按钮 -->
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+                    <Button Content="取消" Width="80" Height="30" Margin="0,0,10,0"
+                            Background="#6C757D" Foreground="White" BorderThickness="0"/>
+                    <Button Content="保存" Width="80" Height="30" Command="{Binding UpdateCmd}"
+                            Background="#007BFF" Foreground="White" BorderThickness="0"/>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

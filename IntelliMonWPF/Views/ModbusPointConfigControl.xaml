@@ -15,12 +15,15 @@
 
         <!-- 工具栏区域：添加更多操作按钮以丰富功能 -->
         <ToolBar Grid.Row="0" Margin="5">
-            <Button Content="添加点" Width="80" Margin="3" Background="#007BFF" Foreground="White" BorderThickness="1" BorderBrush="#007BFF" ToolTip="添加一个新的 Modbus 点"/>
-            <Button Content="编辑点" Width="80" Margin="3" Background="#6C757D" Foreground="White" BorderThickness="1" BorderBrush="#6C757D" ToolTip="编辑选中的 Modbus 点"/>
-            <Button Content="删除点" Width="80" Margin="3" Background="#DC3545" Foreground="White" BorderThickness="1" BorderBrush="#DC3545" ToolTip="删除选中的 Modbus 点"/>
+            <Button Command="{Binding AddPointCmd}" Content="添加点" Width="80" Margin="3" Background="#007BFF" Foreground="White" BorderThickness="1" BorderBrush="#007BFF" ToolTip="添加一个新的 Modbus 点"/>
+            <Button Command="{Binding ShowEditCmd}" Content="编辑点" Width="80" Margin="3" Background="#6C757D" Foreground="White" BorderThickness="1" BorderBrush="#6C757D" ToolTip="编辑选中的 Modbus 点"/>
+            <Button Command="{Binding DelPointCmd}" Content="删除点" Width="80" Margin="3" Background="#DC3545" Foreground="White" BorderThickness="1" BorderBrush="#DC3545" ToolTip="删除选中的 Modbus 点"/>
             <Separator/>
-            <Button Content="导入 CSV" Width="80" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="从 CSV 文件导入点表"/>
-            <Button Content="导出 CSV" Width="80" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="导出点表到 CSV 文件"/>
+            <Button Content="导入 CSV" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="从 CSV 文件导入点表"/>
+            <Button Content="导出 CSV" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="导出点表到 CSV 文件"/>
+            <Button Command="{Binding UpdatePointCmd}" Content="更新点表" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="更新点表到数据库(只限保存的数据)"/>
+            <Button Command="{Binding SavePointCmd}" Content="导出 数据库" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="导出点表到 数据库"/>
+           
             <Separator/>
             <Button Content="刷新列表" Width="80" Margin="3" Background="#17A2B8" Foreground="White" BorderThickness="1" BorderBrush="#17A2B8" ToolTip="刷新点表列表"/>
             <Button Content="验证配置" Width="80" Margin="3" Background="#FFC107" Foreground="White" BorderThickness="1" BorderBrush="#FFC107" ToolTip="验证点表配置的有效性"/>
@@ -29,26 +32,27 @@
         <!-- 搜索栏区域：添加快速搜索框以增强交互性 -->
         <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="10,5,10,5" Background="#FFFFFF">
             <Label Content="快速搜索:" VerticalAlignment="Center"/>
-            <TextBox Width="200" Margin="5,0" ToolTip="输入点名称、地址或描述进行快速搜索"/>
-            <Button Content="搜索" Width="80" Margin="5,0" Background="#007BFF" Foreground="White" BorderThickness="1" BorderBrush="#007BFF"/>
-            <Button Content="清除" Width="80" Margin="5,0" Background="#6C757D" Foreground="White" BorderThickness="1" BorderBrush="#6C757D"/>
+            <TextBox Text="{Binding Search}" Width="200" Margin="5,0" ToolTip="输入点名称、地址或描述进行快速搜索"/>
+            <Button Command="{Binding RefreshCmd}" Content="搜索" Width="80" Margin="5,0" Background="#007BFF" Foreground="White" BorderThickness="1" BorderBrush="#007BFF"/>
+            <Button Command="{Binding ClearCmd}" Content="清除" Width="80" Margin="5,0" Background="#6C757D" Foreground="White" BorderThickness="1" BorderBrush="#6C757D"/>
         </StackPanel>
 
         <!-- 主内容区域：使用 Splitter 分割列表和详情面板 -->
         <Grid Grid.Row="2" Margin="10">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="4*"/>
+                <ColumnDefinition Width="5*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
 
             <!-- 点表列表：添加更多列以提供更丰富的信息显示 -->
-            <DataGrid AutoGenerateColumns="False" IsReadOnly="True" Margin="0,0,5,0" GridLinesVisibility="All" HeadersVisibility="All"
-                      CanUserSortColumns="True" CanUserResizeColumns="True" AlternationCount="2" AlternatingRowBackground="#F8F9FA">
+            <DataGrid Width="1200" AutoGenerateColumns="False" IsReadOnly="True" Margin="0,0,5,0" GridLinesVisibility="All" HeadersVisibility="All" ItemsSource="{Binding PointView}"
+                      CanUserSortColumns="True" CanUserResizeColumns="True" AlternationCount="2" AlternatingRowBackground="#F8F9FA" HorizontalScrollBarVisibility="Auto"
+                      SelectedItem="{Binding SelectPoint}">
                 <DataGrid.Columns>
                     <DataGridCheckBoxColumn Header="选择" Width="80" ElementStyle="{StaticResource {x:Type CheckBox}}"/>
-                    <DataGridTextColumn Header="点名称" Binding="{Binding PointName}" Width="150" IsReadOnly="True"/>
-                    <DataGridComboBoxColumn Header="寄存器类型" Width="140">
+                    <DataGridTextColumn  Header="点名称" Binding="{Binding PointName}" Width="150" IsReadOnly="True"/>
+                    <DataGridComboBoxColumn Header="寄存器类型" Width="140" SelectedItemBinding="{Binding RegisterType}">
                         <DataGridComboBoxColumn.ItemsSource>
                             <x:Array Type="{x:Type sys:String}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
                                 <sys:String>Coil</sys:String>
@@ -59,24 +63,14 @@
                         </DataGridComboBoxColumn.ItemsSource>
                     </DataGridComboBoxColumn>
                     <DataGridTextColumn Header="起始地址" Binding="{Binding StartAddress}" Width="120"/>
-                    <DataGridTextColumn Header="长度" Binding="{Binding Length}" Width="100"/>
-                    <DataGridComboBoxColumn Header="数据类型" Width="100">
-                        <DataGridComboBoxColumn.ItemsSource>
-                            <x:Array Type="{x:Type sys:String}" xmlns:sys="clr-namespace:System;assembly=mscorlib">
-                                <sys:String>Bool</sys:String>
-                                <sys:String>Int16</sys:String>
-                                <sys:String>Int32</sys:String>
-                                <sys:String>Float</sys:String>
-                                <sys:String>Double</sys:String>
-                                <sys:String>String</sys:String>
-                            </x:Array>
-                        </DataGridComboBoxColumn.ItemsSource>
-                    </DataGridComboBoxColumn>
-                    <DataGridTextColumn Header="读/写权限" Binding="{Binding AccessType}" Width="80"/>
-                    <DataGridTextColumn Header="单位" Binding="{Binding Unit}" Width="60"/>
+                    <DataGridTextColumn Header="长度" Binding="{Binding Len}" Width="100"/>
+                    <DataGridTextColumn Header="数据类型" Width="160" Binding="{Binding DataType}">
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="读/写权限" Binding="{Binding AccessType}" Width="100"/>
+                    <DataGridTextColumn Header="单位" Binding="{Binding Unit}" Width="100"/>
                     <DataGridTextColumn Header="缩放因子" Binding="{Binding ScaleFactor}" Width="120"/>
                     <DataGridTextColumn Header="偏移量" Binding="{Binding Offset}" Width="80"/>
-                    <DataGridTextColumn Header="描述" Binding="{Binding Description}" Width="*" ToolTipService.ToolTip="{Binding Description}"/>
+                    <DataGridTextColumn Header="描述" Binding="{Binding Desc}" Width="200" ToolTipService.ToolTip="{Binding Description}"/>
                 </DataGrid.Columns>
             </DataGrid>
 
@@ -84,7 +78,7 @@
             <GridSplitter Grid.Column="1" Width="5" Background="#CCCCCC" HorizontalAlignment="Center" VerticalAlignment="Stretch"/>
 
             <!-- 筛选和详情区域：使用 TabControl 分离筛选和详情以丰富布局 -->
-            <TabControl Grid.Column="2" Margin="5,0">
+            <TabControl Grid.Column="2" Margin="5,0" ItemsSource="{Binding PointSearch}">
                 <TabItem Header="筛选">
                     <GroupBox Header="高级筛选" Margin="0,10,0,0" Padding="10">
                         <Grid>
@@ -101,10 +95,10 @@
                             </Grid.ColumnDefinitions>
 
                             <Label Content="点名称:" Grid.Row="0" VerticalAlignment="Center"/>
-                            <TextBox Grid.Row="0" Grid.Column="1" Margin="5,2" ToolTip="输入点名称进行过滤"/>
+                            <TextBox Text="{Binding PointName,RelativeSource={RelativeSource AncestorType=TabControl, Mode=FindAncestor}}" Grid.Row="0" Grid.Column="1" Margin="5,2" ToolTip="输入点名称进行过滤"/>
 
                             <Label Content="寄存器类型:" Grid.Row="1" VerticalAlignment="Center" Margin="0,5,0,0"/>
-                            <ComboBox Grid.Row="1" Grid.Column="1" Margin="5,5,0,0">
+                            <ComboBox Grid.Row="1" Grid.Column="1" Margin="5,5,0,0" SelectedValuePath="Content" SelectedItem="{Binding RegisterType}">
                                 <ComboBoxItem Content="全部"/>
                                 <ComboBoxItem Content="Coil"/>
                                 <ComboBoxItem Content="Discrete Input"/>
@@ -113,7 +107,7 @@
                             </ComboBox>
 
                             <Label Content="数据类型:" Grid.Row="2" VerticalAlignment="Center" Margin="0,5,0,0"/>
-                            <ComboBox Grid.Row="2" Grid.Column="1" Margin="5,5,0,0">
+                            <ComboBox Grid.Row="2" Grid.Column="1" Margin="5,5,0,0" SelectedValuePath="Content" SelectedValue="{Binding DataType}">
                                 <ComboBoxItem Content="全部"/>
                                 <ComboBoxItem Content="Bool"/>
                                 <ComboBoxItem Content="Int16"/>
@@ -124,14 +118,13 @@
                             </ComboBox>
 
                             <Label Content="读/写权限:" Grid.Row="3" VerticalAlignment="Center" Margin="0,5,0,0"/>
-                            <ComboBox Grid.Row="3" Grid.Column="1" Margin="5,5,0,0">
-                                <ComboBoxItem Content="全部"/>
+                            <ComboBox SelectedValuePath="Content" SelectedValue="{Binding AccessTypr}" Grid.Row="3" Grid.Column="1" Margin="5,5,0,0">
                                 <ComboBoxItem Content="Read Only"/>
                                 <ComboBoxItem Content="Write Only"/>
                                 <ComboBoxItem Content="Read/Write"/>
                             </ComboBox>
 
-                            <Button Content="应用筛选" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,10,0,0" 
+                            <Button Command="{Binding SearchPointCmd}" Content="应用筛选" Grid.Row="4" Grid.ColumnSpan="2" Margin="0,10,0,0" 
                                     Background="#007BFF" Foreground="White" BorderThickness="1" BorderBrush="#007BFF"/>
                         </Grid>
                     </GroupBox>
@@ -158,31 +151,31 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Label Content="点名称:" Grid.Row="0"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding SelectPoint.PointName}"/>
 
                                 <Label Content="寄存器类型:" Grid.Row="1" Margin="0,5,0,0"/>
-                                <TextBlock Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectPoint.RegisterType}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="起始地址:" Grid.Row="2" Margin="0,5,0,0"/>
-                                <TextBlock Grid.Row="2" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectPoint.StartAdress}" Grid.Row="2" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="长度:" Grid.Row="3" Margin="0,5,0,0"/>
-                                <TextBlock Grid.Row="3" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectPoint.Len}" Grid.Row="3" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="数据类型:" Grid.Row="4" Margin="0,5,0,0"/>
-                                <TextBlock Grid.Row="4" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectPoint.DataType}" Grid.Row="4" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="读/写权限:" Grid.Row="5" Margin="0,5,0,0"/>
-                                <TextBlock Grid.Row="5" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectPoint.AccessType}" Grid.Row="5" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="单位:" Grid.Row="6" Margin="0,5,0,0"/>
-                                <TextBlock Grid.Row="6" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectPoint.Unit}" Grid.Row="6" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="缩放因子:" Grid.Row="7" Margin="0,5,0,0"/>
-                                <TextBlock Grid.Row="7" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding SelectPoint.ScaleFactor}" Grid.Row="7" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="描述:" Grid.Row="8" Margin="0,5,0,0"/>
-                                <TextBlock Grid.Row="8" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding SelectPoint.Desc}" Grid.Row="8" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
                             </Grid>
                         </ScrollViewer>
                     </GroupBox>

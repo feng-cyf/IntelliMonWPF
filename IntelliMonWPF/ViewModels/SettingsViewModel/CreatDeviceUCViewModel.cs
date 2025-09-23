@@ -1,5 +1,6 @@
 ﻿using IntelliMonWPF.Base;
 using IntelliMonWPF.Enum;
+using IntelliMonWPF.Interface;
 using IntelliMonWPF.Models;
 using IntelliMonWPF.Models.Manger;
 using System;
@@ -37,7 +38,8 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
 
         }
         private ModbusDictManger ModbusDictManger;
-        public CreatDeviceUCViewModel(ModbusDictManger modbusDictManger)
+        private IMessages messages;
+        public CreatDeviceUCViewModel(ModbusDictManger modbusDictManger,IMessages messages)
         {
             #region 参数初始化
             Modbus = new ObservableCollection<KeyValuePair<ModbusEnum.Modbus, string>> 
@@ -52,6 +54,7 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
             AddDeviceCmd = new DelegateCommand(AddDevice);
             GetIpAdress();
             OnIpAderss(null,null);
+            this.messages = messages;
         }
         private void GetIpAdress()
         {
@@ -74,16 +77,6 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
         public DelegateCommand AddDeviceCmd { get; set; }
         private void AddDevice()
         {
-            if (!int.TryParse(PeriodTime,out var a))
-            {
-                MessageBox.Show("轮询间隔请输入整数，且不能为空");
-                return;
-            }
-            if (!int.TryParse(SalveID,out var b))
-            {
-                MessageBox.Show("从站地址请输入整数，且不能为空");
-                return;
-            }
             switch (SelectModbus.Key)
             {
                 case ModbusEnum.Modbus.SerialPort:
@@ -103,7 +96,7 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
         {
            if (!CanWriteIP && string.IsNullOrEmpty(IpAdresss))
             {
-                MessageBox.Show("Ip不能为空");
+               messages.ShowMessage("Ip不能为空");
                 return;
             }
            TcpModel tcpModel = new TcpModel();
@@ -112,33 +105,27 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
             DeviceModel deviceModel = new DeviceModel() 
             {
                 Config = tcpModel,
-                Port = Port,
-                PeriodTime = Convert.ToInt32(PeriodTime),
                 Type="TCPModbus",Protocol=SelectModbus.Key,
-                ConnectionString= IpAdresss + ":" + Port.ToString(),
                 Channel= new IF_Implements.Channel.ModbusReadChannel(),
-                Name=IpAdresss+":"+Port.ToString(),SlaveId=Convert.ToInt32(SalveID),
-                Function=SelectFunction
+                DeviceName= IpAdresss+":"+ Port.ToString(),
             };
-            if (!ModbusDictManger.ModbusMangeDict.ContainsKey(deviceModel.Name))
+            if (!ModbusDictManger.ModbusMangeDict.ContainsKey(deviceModel.DeviceName))
             { 
                 await deviceModel.Channel.OpenAsyance(deviceModel);
                 if (deviceModel.Channel.IsConnected)
                 {
-                    deviceModel.Status = "已连接";
                     ModbusDictManger.AddDevice(deviceModel);
                     RequestClose.Invoke();
                 }
             }
-            else MessageBox.Show("当前IP已经连接");
+            else messages.ShowMessage("当前IP已经连接"); return;
            
         }
-
         private void AddSerialDevice()
         {
             if (string.IsNullOrEmpty(SelectPortName))
             {
-                MessageBox.Show("串口名字不能为空");
+               messages.ShowMessage("串口名字不能为空");
                 return;
             }
             var SerialParameter = new SerialPortModel();
@@ -153,23 +140,21 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
             SerialParameter.CTsEnable = IsCTS;
             DeviceModel deviceModel = new DeviceModel()
             {
-                Name = SelectPortName,
+                DeviceName = SelectPortName,
                 Config = SerialParameter,
                 Channel = new IF_Implements.Channel.ModbusReadChannel(),
                 Protocol = SelectModbus.Key,
                 SerialPortType = SerialPortType == true ? ModbusEnum.SerialPortType.RTU : ModbusEnum.SerialPortType.ASCII,
                 Type = SerialPortType == true ? "RTUModbus" : "ASCIIModbus",
-                Port=0,PeriodTime=Convert.ToInt32(PeriodTime),
-                ConnectionString=$"{ SelectPortName }",SlaveId=Convert.ToInt32(SalveID),Function=SelectFunction
             };
+           
             deviceModel.Channel.OpenAsyance(deviceModel);
+
             if (deviceModel.Channel.IsConnected)
             {
-                deviceModel.Status = "已连接";
                 ModbusDictManger.AddDevice(deviceModel);
                 RequestClose.Invoke();
             }
-            
         }
         #region 参数设置
         private ObservableCollection<KeyValuePair<ModbusEnum.Modbus,string>> _Modbus;
@@ -300,36 +285,6 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
                 RaisePropertyChanged();
             }
         }
-
-        // 初始化01到04的Modbus功能码键值对
-        private ObservableCollection<KeyValuePair<string, string>> _FunctionList = new ObservableCollection<KeyValuePair<string, string>>
-{
-    new KeyValuePair<string, string>("01", "读取线圈状态 (Read Coils)"),
-    new KeyValuePair<string, string>("02", "读取离散输入 (Read Discrete Inputs)"),
-    new KeyValuePair<string, string>("03", "读取保持寄存器 (Read Holding Registers)"),
-    new KeyValuePair<string, string>("04", "读取输入寄存器 (Read Input Registers)")
-};
-
-
-        public ObservableCollection<KeyValuePair<string,string>> FunctionList
-        {
-            get { return _FunctionList; }
-            set {
-                _FunctionList = value;
-                RaisePropertyChanged();
-            }
-        }
-        private KeyValuePair<string,string> _SelectFunction;
-
-        public KeyValuePair<string,string> SelectFunction
-        {
-            get { return _SelectFunction; }
-            set { _SelectFunction = value;
-                RaisePropertyChanged();
-            }
-        }
-
-
 
 
         #region 串口参数

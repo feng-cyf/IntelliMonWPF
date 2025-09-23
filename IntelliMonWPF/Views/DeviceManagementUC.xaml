@@ -5,19 +5,25 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:IntelliMonWPF.Views"
              mc:Ignorable="d" 
+             xmlns:i="http://schemas.microsoft.com/xaml/behaviors" xmlns:core="http://prismlibrary.com/" xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              d:DesignHeight="800" d:DesignWidth="1000">
-    <Grid>
+    <Grid Margin="0,0,0,-172">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="549*"/>
+            <ColumnDefinition Width="451*"/>
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
-        <UniformGrid Columns="6">
+        <UniformGrid Columns="6" Grid.ColumnSpan="2">
             <!-- 添加设备：主蓝色（新增操作，视觉突出） -->
             <Button Content="添加设备" Command="{Binding AddDeviceCommand}" Margin="10"  
         Background="#165DFF" Foreground="White" 
         BorderBrush="#165DFF" BorderThickness="1"/>
-            
-            <Button Content="新增读取" Command="{Binding AddDeviceCommand}" Margin="10"  
+
+            <Button Content="新增读取" Command="{Binding ShoeAddDeviceCmd}" Margin="10"  
         Background="Gray" Foreground="White" 
         BorderBrush="#165DFF" BorderThickness="1"/>
 
@@ -42,49 +48,77 @@
         Background="#FF4D4F" Foreground="White" 
         BorderBrush="#FF4D4F" BorderThickness="1"/>
         </UniformGrid>
-        <Grid Grid.Row="1">
+        <UniformGrid Columns="3" Grid.Row="1" Grid.ColumnSpan="2">
+            <Button Command="{Binding ApiSaveCmd}" Content="导入数据库" Margin="0 5" ToolTip="导入设备名称和从站id到数据库"></Button>
+            <Button Content="一键关闭" Command="{Binding StopAllDeviceCmd}"></Button>
+            <Button Content="一键打开" Command="{Binding StartDeviceCmd}"></Button>
+        </UniformGrid>
+        <Grid Grid.Row="2" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="249*"/>
                 <ColumnDefinition Width="126*"/>
                 <ColumnDefinition Width="125*"/>
             </Grid.ColumnDefinitions>
-            <DataGrid ItemsSource="{Binding Devices}" 
-                      SelectedItem="{Binding SelectedDevice}"
-                      AutoGenerateColumns="False"
-                      CanUserResizeRows="True"
-                      IsReadOnly="True"
-                      Margin="0,0,15,0" Grid.ColumnSpan="2">
+            <!-- 外层：设备列表 -->
+            <DataGrid ItemsSource="{Binding Devices}"
+          SelectedItem="{Binding SelectedDevice}"
+          AutoGenerateColumns="False"
+          Grid.ColumnSpan="2"
+          RowDetailsVisibilityMode="Visible"
+          IsReadOnly="True" Margin="0,0,0,28">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="设备名称" Binding="{Binding Name}" Width="150"/>
-                    <DataGridTextColumn 
-                                    Header="类型" 
-                                    Binding="{Binding Type}" 
-                                    Width="120">
-                        <DataGridTextColumn.ElementStyle>
-                            <Style TargetType="TextBlock">
-                                <Setter Property="ToolTip" Value="{Binding Type}"/>
-                            </Style>
-                        </DataGridTextColumn.ElementStyle>
-                    </DataGridTextColumn>
-                    <DataGridTextColumn Header="IP/串口" Binding="{Binding ConnectionString}" Width="120"/>
-                    <DataGridTextColumn Header="端口" Binding="{Binding Port}" Width="60"/>
-                    <DataGridTextColumn Header="从站ID" Binding="{Binding SlaveId}" Width="100"/>
-                    <DataGridTextColumn Header="轮询间隔(ms)" Binding="{Binding PeriodTime}" Width="150"/>
-                    <DataGridTextColumn Header="功能码" Binding="{Binding Function.Key}" Width="80"/>
-                    <DataGridTemplateColumn Header="状态" Width="100">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Ellipse Width="10" Height="10"/>
-                                    <TextBlock Text="{Binding Status}" Margin="0,0,0,0"/>
-                                </StackPanel>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="设备名称" Binding="{Binding DeviceName}" Width="150"/>
+                    <DataGridTextColumn Header="类型"     Binding="{Binding Type}"       Width="120"/>
+                    <DataGridTextColumn Header="类型"     Binding="{Binding Status}"       Width="200"/>
                 </DataGrid.Columns>
-            </DataGrid>
 
-            <Border Grid.Column="2" Background="White" CornerRadius="5" BorderBrush="#DDDDDD" BorderThickness="1">
+                <!-- 行展开：当前设备下的所有 ReadModel -->
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate>
+                        <DataGrid ItemsSource="{Binding ReadModels}"
+                  AutoGenerateColumns="False"
+                  IsReadOnly="True"
+                  SelectedItem="{Binding DataContext.SelectedReadModel, 
+                                         RelativeSource={RelativeSource AncestorType=UserControl}, Mode=TwoWay}"
+                  SelectionUnit="FullRow"
+                  SelectionMode="Single"
+                  Margin="20,0,0,0">
+                            <i:Interaction.Triggers>
+                                <i:EventTrigger EventName="MouseDoubleClick">
+                                    <core:InvokeCommandAction
+                        Command="{Binding DataContext.RowDoubleClickCommand,
+                                          RelativeSource={RelativeSource AncestorType=UserControl}}"
+                        CommandParameter="{Binding SelectedItem, RelativeSource={RelativeSource Self}}"/>
+                                </i:EventTrigger>
+                            </i:Interaction.Triggers>
+                            <DataGrid.Columns>
+                                <!-- 去掉设备名称列 -->
+                                <DataGridTextColumn Header="SlaveId"      Binding="{Binding SlaveId}"      Width="80"/>
+                                <DataGridTextColumn Header="起始地址"     Binding="{Binding StartAddress}" Width="120"/>
+                                <DataGridTextColumn Header="寄存器数"     Binding="{Binding NumAddress}"   Width="120"/>
+                                <DataGridTextColumn Header="功能码"       Binding="{Binding Function}"     Width="100"/>
+                                <DataGridTextColumn Header="轮询周期"     Binding="{Binding Interavel}"    Width="120"/>
+                                <DataGridTextColumn Header="状态"         Binding="{Binding Status}"       Width="300"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
+            </DataGrid>
+            <materialDesign:Snackbar
+         x:Name="MySnackbar"
+         MessageQueue="{Binding messageQueue}"
+         VerticalAlignment="Center"
+         HorizontalAlignment="Center"
+         Margin="10"
+         Height="100"
+         Width="100"
+                Panel.ZIndex="9999"
+        Grid.Row="1"
+         Background="Black"
+         Foreground="White"/>
+
+
+            <Border Grid.Column="2" Background="White" CornerRadius="5" BorderBrush="#DDDDDD" BorderThickness="1" Margin="0,0,0,28">
                 <StackPanel Margin="15">
                     <TextBlock Text="设备筛选" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
                     <Expander Header="筛选条件" IsExpanded="True" Margin="0,0,0,10">
@@ -101,7 +135,7 @@
                             </Grid.ColumnDefinitions>
                             <TextBlock Text="设备名称:" Grid.Row="0" VerticalAlignment="Center"/>
                             <TextBox Text="{Binding DeviceName, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0"/>
-                            <TextBlock Text="设备IP:" Grid.Row="1" VerticalAlignment="Center"/>
+                            <TextBlock Text="设备功能码:" Grid.Row="1" VerticalAlignment="Center"/>
                             <TextBox Text="{Binding DeviceCon, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" Margin="5,0,0,0"/>
                             <TextBlock Text="设备运行状态:" Grid.Row="2" VerticalAlignment="Center"/>
                             <TextBox Text="{Binding DeviceStatus, UpdateSourceTrigger=PropertyChanged}" Grid.Row="2" Grid.Column="1" Margin="5,0,0,0"/>
@@ -125,7 +159,7 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Text="设备名称:" Grid.Row="0"/>
-                            <TextBlock Text="{Binding SelectedDevice.Name}" Grid.Row="0" Grid.Column="1"/>
+                            <TextBlock Text="{Binding SelectedDevice.DeviceName}" Grid.Row="0" Grid.Column="1"/>
 
                             <TextBlock Text="设备类型:" Grid.Row="1" Margin="0,5,0,0"/>
                             <TextBlock Text="{Binding SelectedDevice.Type}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0"/>
@@ -147,19 +181,19 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="连接地址:" Grid.Row="0"/>
-                            <TextBlock Text="{Binding SelectedDevice.ConnectionString}" Grid.Row="0" Grid.Column="1"/>
+                            <TextBlock Text="读取数量:" Grid.Row="0"/>
+                            <TextBlock Text="{Binding SelectedReadModel.NumAddress}" Grid.Row="0" Grid.Column="1"/>
 
-                            <TextBlock Text="端口号:" Grid.Row="1" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedDevice.Port}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0"/>
+                            <TextBlock Text="读取地址:" Grid.Row="1" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding SelectedReadModel.StartAddress}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0"/>
 
                             <TextBlock Text="从站ID:" Grid.Row="2" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedDevice.SlaveId}" Grid.Row="2" Grid.Column="1" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding SelectedReadModel.SlaveId}" Grid.Row="2" Grid.Column="1" Margin="0,5,0,0"/>
 
-                            <TextBlock Text="读取超时(ms):" Grid.Row="3" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedDevice.ReadModel.ReadTimeout}" Grid.Row="3" Grid.Column="1" Margin="0,5,0,0"/>
-                            <TextBlock Text="发送超时(ms):" Grid.Row="4" Margin="0,5,0,0"/>
-                            <TextBlock Text="" Grid.Row="4" Grid.Column="1" Margin="0,5,0,0"/>
+                            <TextBlock Text="最大错误次数:" Grid.Row="3" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding SelectedReadModel.MaxError}" Grid.Row="3" Grid.Column="1" Margin="0,5,0,0"/>
+                            <TextBlock Text="设备自行故障:" Grid.Row="4" Margin="0,5,0,0"/>
+                            <TextBlock Text="{Binding SelectedDevice.IsAutoCon}" Grid.Row="4" Grid.Column="1" Margin="0,5,0,0"/>
                         </Grid>
                     </Expander>
 
@@ -176,12 +210,12 @@
                             </Grid.ColumnDefinitions>
 
                             <TextBlock Text="轮询间隔:" Grid.Row="0"/>
-                            <TextBlock Text="{Binding SelectedDevice.PeriodTime}" Grid.Row="0" Grid.Column="1"/>
+                            <TextBlock Text="{Binding SelectedReadModel.Interavel}" Grid.Row="0" Grid.Column="1"/>
 
                             <TextBlock Text="当前状态:" Grid.Row="1" Margin="0,5,0,0"/>
                             <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,5,0,0">
                                 <Ellipse Width="10" Height="10"/>
-                                <TextBlock Text="{Binding SelectedDevice.Status}" Margin="5,0,0,0"/>
+                                <TextBlock Text="{Binding SelectedReadModel.Status}" Margin="5,0,0,0"/>
                             </StackPanel>
                         </Grid>
                     </Expander>
@@ -199,7 +233,7 @@
                             <TextBlock Text="最后通信时间:" Grid.Row="0" Margin="0,5,0,0"/>
                             <TextBlock Text="{Binding SelectedDevice.Notes}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
                             <TextBlock Text="错误计数:" Grid.Row="1" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedDevice.Notes}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                            <TextBlock Text="{Binding SelectedReadModel.ErrorCount}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
                         </Grid>
                     </Expander>
                     <Button Content="导入csv" Margin="0 10"></Button>

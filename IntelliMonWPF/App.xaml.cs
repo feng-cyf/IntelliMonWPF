@@ -1,4 +1,6 @@
 ﻿using IntelliMonWPF.HttpClient;
+using IntelliMonWPF.IF_Implements;
+using IntelliMonWPF.Interface;
 using IntelliMonWPF.Models.Manger;
 using IntelliMonWPF.ViewModels;
 using IntelliMonWPF.ViewModels.DialogsViewModels;
@@ -19,6 +21,7 @@ namespace IntelliMonWPF
     {
         protected override Window CreateShell()
         {
+            Container.Resolve<MessageWindowViewModel>();
             return Container.Resolve<MainWindow>();
         }
 
@@ -33,6 +36,13 @@ namespace IntelliMonWPF
             containerRegistry.RegisterSingleton<ModbusDictManger>();
             containerRegistry.RegisterDialog<EditDeviceUC, EditDeviceUCViewModel>();
             containerRegistry.RegisterForNavigation<ModbusPointConfigControl, ModbusPointConfigControlViewModel>();
+            containerRegistry.RegisterDialog<AddDeviceModbusUC, AddDeviceModbusUCViewModel>();
+            containerRegistry.RegisterDialog<SendUC, SendUCViewModel>();
+            containerRegistry.RegisterDialog<AddModbusPoint, AddModbusPointViewModel>();
+            containerRegistry.Register<IMessages, Message>();
+            containerRegistry.RegisterForNavigation<MessageWindow, MessageWindowViewModel>();
+            containerRegistry.RegisterSingleton<MessageWindowViewModel>();
+            containerRegistry.RegisterDialog<EditPointUC, EditPointUCViewModel>();
         }
         //protected override void OnInitialized()
         //{

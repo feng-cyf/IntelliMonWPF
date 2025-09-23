@@ -38,10 +38,4 @@ namespace IntelliMonWPF.HttpClient
         [JsonProperty("create_time")]
         public DateTime CreateTime { get; set; }
     }
-    public class LoginResponse<T>
-    {
-        public int code { get; set; }
-        public string message { get; set; }
-        public T data { get; set; }
-    }
 }
