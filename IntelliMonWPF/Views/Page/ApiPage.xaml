@@ -1,0 +1,200 @@
+﻿<Page x:Class="IntelliMonWPF.Views.Page.ApiPage"
+      xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+      xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+      xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+      xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+      xmlns:local="clr-namespace:IntelliMonWPF.Views.Page"
+      mc:Ignorable="d" 
+      d:DesignHeight="450" d:DesignWidth="600"
+      Title="ApiPage">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Background="#F7F7F7" Margin="10">
+            <!-- 1. 机器配置日志 -->
+            <Border Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6" Margin="0,0,0,16" Padding="10" Height="200">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <Label x:Name="data1" Content="机器配置日志" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Hyperlink>保存到文件</Hyperlink>
+                            </TextBlock>
+                            <TextBlock VerticalAlignment="Center">
+                                <Hyperlink>清除</Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <ListBox ItemsSource="{Binding MachineLog}" Margin="0,0,0,0">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"
+                                           MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <!-- 2. 点表Api请求日志 -->
+            <Border Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6" Margin="0,0,0,16" Padding="10" Height="200">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <Label x:Name="data2" Content="点表Api请求日志" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Hyperlink>保存到文件</Hyperlink>
+                            </TextBlock>
+                            <TextBlock VerticalAlignment="Center">
+                                <Hyperlink>清除</Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <ListBox ItemsSource="{Binding PointApiLog}" Margin="0,0,0,0">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"
+                                           MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <!-- 3. Excel请求日志 -->
+            <Border Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6" Margin="0,0,0,16" Padding="10" Height="200">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <Label x:Name="data3" Content="Excel请求日志" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Hyperlink>保存到文件</Hyperlink>
+                            </TextBlock>
+                            <TextBlock VerticalAlignment="Center">
+                                <Hyperlink>清除</Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <ListBox ItemsSource="{Binding ExcelLog}" Margin="0,0,0,0">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"
+                                           MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <!-- 4. 设备配置日志 -->
+            <Border Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6" Margin="0,0,0,16" Padding="10" Height="200">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <Label x:Name="data4" Content="设备配置日志" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Hyperlink>保存到文件</Hyperlink>
+                            </TextBlock>
+                            <TextBlock VerticalAlignment="Center">
+                                <Hyperlink>清除</Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <ListBox ItemsSource="{Binding DeviceConfigLog}" Margin="0,0,0,0">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"
+                                           MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <!-- 5. 点表配置日志 -->
+            <Border Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6" Margin="0,0,0,16" Padding="10" Height="200">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <Label x:Name="data5" Content="点表配置日志" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Hyperlink>保存到文件</Hyperlink>
+                            </TextBlock>
+                            <TextBlock VerticalAlignment="Center">
+                                <Hyperlink>清除</Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                    </DockPanel>
+
+                    <ListBox ItemsSource="{Binding PointConfigLog}" Margin="0,0,0,0">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"
+                                           MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+
+            <!-- 6. 历史消息 -->
+            <Border Background="White" BorderBrush="#DDD" BorderThickness="1" CornerRadius="6" Margin="0,0,0,0" Padding="10" Height="200">
+                <StackPanel>
+                    <DockPanel Margin="0,0,0,8">
+                        <Label x:Name="data6" Content="历史消息" FontSize="14" FontWeight="Bold" VerticalAlignment="Center" />
+                        <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" HorizontalAlignment="Right">
+                            <TextBlock Margin="0,0,10,0" VerticalAlignment="Center">
+                                <Hyperlink>保存到文件</Hyperlink>
+                            </TextBlock>
+                            <TextBlock VerticalAlignment="Center">
+                                <Hyperlink>清除</Hyperlink>
+                            </TextBlock>
+                        </StackPanel>
+                    </DockPanel>
+
+                        <ListBox ItemsSource="{Binding HistoryLog}" Margin="0,0,0,0">
+                        <ListBox.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ListBox.ItemsPanel>
+                        <ListBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding}" TextWrapping="Wrap" Margin="4,2"
+                                           MaxWidth="{Binding ActualWidth, RelativeSource={RelativeSource AncestorType=ListBox}}"/>
+                            </DataTemplate>
+                        </ListBox.ItemTemplate>
+                    </ListBox>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</Page>

@@ -1,4 +1,7 @@
-﻿using IntelliMonWPF.Models.Manger;
+﻿using IntelliMonWPF.Helper.Tools;
+using IntelliMonWPF.IF_Implements.MangerInferface;
+using IntelliMonWPF.Interface.IFactory;
+
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,7 +12,7 @@ using System.Windows.Threading;
 
 namespace IntelliMonWPF.ViewModels.DialogsViewModels
 {
-    internal class ShowPackUCViewModel : BindableBase, IDialogAware
+    public class ShowPackUCViewModel : BindableBase, IDialogAware
     {
         public DialogCloseListener RequestClose { get; }=new DialogCloseListener();
 
@@ -28,14 +31,12 @@ namespace IntelliMonWPF.ViewModels.DialogsViewModels
         {
              
         }
-        private readonly ModbusDictManger modbusDictManger1;
+        private readonly string title = "收发数据包";
         private readonly DispatcherTimer _timer;
         private int len = 001;
-
-        public ShowPackUCViewModel(ModbusDictManger modbusDictManger)
+        private SingelTool singelTool=SingelTool.singelTool;
+        public ShowPackUCViewModel()
         {
-            this.modbusDictManger1 = modbusDictManger;
-
             _timer = new DispatcherTimer
             {
                 Interval = TimeSpan.FromMilliseconds(500)
@@ -46,7 +47,7 @@ namespace IntelliMonWPF.ViewModels.DialogsViewModels
 
         private void OnAddPack()
         {
-            while (modbusDictManger1.MoudbusQueue.TryDequeue(out string msg))
+            while (singelTool.MoudbusQueue.TryDequeue(out string msg))
             {
                
                 PackList.Add($"{len.ToString()}  {msg}");
@@ -73,7 +74,5 @@ namespace IntelliMonWPF.ViewModels.DialogsViewModels
             get => _latestItem;
             set { _latestItem = value; RaisePropertyChanged(); }
         }
-
-
     }
 }

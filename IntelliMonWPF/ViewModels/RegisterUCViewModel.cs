@@ -11,7 +11,7 @@ using System.Windows;
 
 namespace IntelliMonWPF.ViewModels
 {
-    internal class RegisterUCViewModel : BindableBase, IDialogAware
+    public class RegisterUCViewModel : BindableBase, IDialogAware
     {
 
         public string Title => "用户注册";

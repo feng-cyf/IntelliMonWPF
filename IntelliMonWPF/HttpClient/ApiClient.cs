@@ -11,7 +11,7 @@ using System.Windows;
 
 namespace IntelliMonWPF.HttpClient
 {
-    internal class ApiClient
+    public class ApiClient
     {
         private string _baseUrl = "http://127.0.0.1:8000";
         public ApiResponse<TResult> Excute<TResult, TRequest>(ApiRequest<TRequest> apiRequest) where TRequest : class

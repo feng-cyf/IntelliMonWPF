@@ -1,5 +1,11 @@
 ﻿using IntelliMonWPF.Enum;
+using IntelliMonWPF.Event;
+using IntelliMonWPF.IF_Implements.Factory;
+using IntelliMonWPF.IF_Implements.MangerInferface;
+using IntelliMonWPF.Interface.IFactory;
+using IntelliMonWPF.Interface.IMangerInferface;
 using IntelliMonWPF.Models;
+using IntelliMonWPF.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -9,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.ViewModels.SettingsViewModel
 {
-    internal class EditDeviceUCViewModel : BindableBase, IDialogAware
+    public class EditDeviceUCViewModel : BindableBase, IDialogAware
     {
         private ReadModel ReadModel { get; set; }
         public DialogCloseListener RequestClose { get; }=new DialogCloseListener();
@@ -44,9 +50,13 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
             StartAdress = ReadModel.StartAddress;
             Number = ReadModel.NumAddress;
         }
-        public EditDeviceUCViewModel()
+        private readonly IDictManger<string,DeviceModel> dictManger;
+        private readonly IDictMangerFactory dictMangerFactory;
+        public EditDeviceUCViewModel(DictMangerFactory dictManger)
         {
-            UpdateCmd=new DelegateCommand(Update);
+            dictMangerFactory = dictManger;
+            this.dictManger = dictMangerFactory.CreateDictManger<string, DeviceModel>(DictMangerType.DeviceModel);
+            UpdateCmd =new DelegateCommand(Update);
             CloseCmd=new DelegateCommand(Close);
         }
         private string _DeviceName;
@@ -72,15 +82,6 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
         {
             get { return _FunctionList; }
             set { _FunctionList = value;
-                RaisePropertyChanged();
-            }
-        }
-        private KeyValuePair<string,string> _SelectFuntion;
-
-        public KeyValuePair<string,string> SelectFuntion
-        {
-            get { return _SelectFuntion; }
-            set { _SelectFuntion = value;
                 RaisePropertyChanged();
             }
         }
@@ -142,14 +143,27 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
         public DelegateCommand UpdateCmd {  get; set; }
         private void Update()
         {
+            dictManger.GetValue(DeviceName).readMangerModbus.TryGetValue((DeviceName, ReadModel.SlaveId, ReadModel.StartAddress), out var rm);
+            var pm= rm.PointModels;
             ReadModel.SlaveId = SavleID;
             ReadModel.ModbusRead = SelectFunction.Key;
             ReadModel.Interavel = Interval;
             ReadModel.NumAddress = Number;
             ReadModel.StartAddress = StartAdress;
             RequestClose.Invoke();
+            LoggingService.Instance.Publish(LogType.DeviceConfig,$"更新设备 {DeviceName} 读取点 {ReadModel.Name.Value} 配置");
+            UpdatePointClass pointModel = new UpdatePointClass() 
+            {
+                PointName=pm.mapDevice.Key,
+                DeviceName = DeviceName,
+                PointId=SavleID,
+                Length =Number,
+                StartAddress=StartAdress,
+                RegisterType=SelectFunction.Value,
+            };
+            UpdatePointEvent.OnGetUpdatePointEvent(pointModel);
         }
-
+        
         public DelegateCommand CloseCmd {  get; set; }
         private void Close()
         {

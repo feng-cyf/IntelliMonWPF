@@ -19,13 +19,13 @@
             <Button Command="{Binding ShowEditCmd}" Content="编辑点" Width="80" Margin="3" Background="#6C757D" Foreground="White" BorderThickness="1" BorderBrush="#6C757D" ToolTip="编辑选中的 Modbus 点"/>
             <Button Command="{Binding DelPointCmd}" Content="删除点" Width="80" Margin="3" Background="#DC3545" Foreground="White" BorderThickness="1" BorderBrush="#DC3545" ToolTip="删除选中的 Modbus 点"/>
             <Separator/>
-            <Button Content="导入 CSV" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="从 CSV 文件导入点表"/>
-            <Button Content="导出 CSV" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="导出点表到 CSV 文件"/>
+            <Button  Content="导入 Excel" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="从 Excel 文件导入点表"/>
+            <Button Command="{Binding PandasCmd}" Content="导出 Excel" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="导出点表到 Excel 文件"/>
             <Button Command="{Binding UpdatePointCmd}" Content="更新点表" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="更新点表到数据库(只限保存的数据)"/>
             <Button Command="{Binding SavePointCmd}" Content="导出 数据库" Width="100" Margin="3" Background="#28A745" Foreground="White" BorderThickness="1" BorderBrush="#28A745" ToolTip="导出点表到 数据库"/>
            
             <Separator/>
-            <Button Content="刷新列表" Width="80" Margin="3" Background="#17A2B8" Foreground="White" BorderThickness="1" BorderBrush="#17A2B8" ToolTip="刷新点表列表"/>
+            <Button Command="{Binding RefrashData}" Content="刷新列表" Width="80" Margin="3" Background="#17A2B8" Foreground="White" BorderThickness="1" BorderBrush="#17A2B8" ToolTip="刷新点表列表"/>
             <Button Content="验证配置" Width="80" Margin="3" Background="#FFC107" Foreground="White" BorderThickness="1" BorderBrush="#FFC107" ToolTip="验证点表配置的有效性"/>
         </ToolBar>
 
@@ -133,7 +133,7 @@
                 <TabItem Header="详情">
                     <GroupBox Header="选中的点表详情" Padding="10">
                         <ScrollViewer VerticalScrollBarVisibility="Auto">
-                            <Grid>
+                            <Grid DataContext="{Binding SelectPoint}">
                                 <Grid.RowDefinitions>
                                     <RowDefinition Height="Auto"/>
                                     <RowDefinition Height="Auto"/>
@@ -151,31 +151,31 @@
                                 </Grid.ColumnDefinitions>
 
                                 <Label Content="点名称:" Grid.Row="0"/>
-                                <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding SelectPoint.PointName}"/>
+                                <TextBlock Grid.Row="0" Grid.Column="1" VerticalAlignment="Center" Text="{Binding PointName}"/>
 
                                 <Label Content="寄存器类型:" Grid.Row="1" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding SelectPoint.RegisterType}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding RegisterType}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="起始地址:" Grid.Row="2" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding SelectPoint.StartAdress}" Grid.Row="2" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding StartAddress}" Grid.Row="2" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="长度:" Grid.Row="3" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding SelectPoint.Len}" Grid.Row="3" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Len}" Grid.Row="3" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="数据类型:" Grid.Row="4" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding SelectPoint.DataType}" Grid.Row="4" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding DataType}" Grid.Row="4" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="读/写权限:" Grid.Row="5" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding SelectPoint.AccessType}" Grid.Row="5" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding AccessType}" Grid.Row="5" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="单位:" Grid.Row="6" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding SelectPoint.Unit}" Grid.Row="6" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding Unit}" Grid.Row="6" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="缩放因子:" Grid.Row="7" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding SelectPoint.ScaleFactor}" Grid.Row="7" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding ScaleFactor}" Grid.Row="7" Grid.Column="1" Margin="0,5,0,0" VerticalAlignment="Center"/>
 
                                 <Label Content="描述:" Grid.Row="8" Margin="0,5,0,0"/>
-                                <TextBlock Text="{Binding SelectPoint.Desc}" Grid.Row="8" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                <TextBlock Text="{Binding Desc}" Grid.Row="8" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
                             </Grid>
                         </ScrollViewer>
                     </GroupBox>

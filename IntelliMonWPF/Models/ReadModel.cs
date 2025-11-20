@@ -10,8 +10,10 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.Models
 {
-    internal class ReadModel : INotifyPropertyChanged
+    public class ReadModel : INotifyPropertyChanged
     {
+        public KeyValuePair<string,string> Name=> new KeyValuePair<string, string>($"{DeviceName}-{SlaveId.ToString()}-{StartAddress}",
+            string.IsNullOrWhiteSpace(PointModels?.PointName)? $"{DeviceName}-{SlaveId.ToString()}-{StartAddress}":PointModels.PointName);
         public ObservableCollection<KeyValuePair<ModbusEnum.SendType, string>> SendFuction => Function switch
         {
             "01" =>new ObservableCollection<KeyValuePair<ModbusEnum.SendType, string>>()
@@ -35,14 +37,35 @@ namespace IntelliMonWPF.Models
             _=>throw new InvalidOperationException()
         };
         public CancellationTokenSource cts { get; set; }=new CancellationTokenSource();
-        public ModbusEnum.ModbusRead ModbusRead { get; set; }
-        public ReadModel()
+        private ModbusEnum.ModbusRead _ModbusRead;
+
+        public ModbusEnum.ModbusRead ModbusRead
         {
-            ReadDataModel = new ReadDataModel();
+            get { return _ModbusRead; }
+            set { _ModbusRead = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(Function));
+            }
         }
-        public int StartAddress { get; set; } = 0;
-        public int NumAddress { get; set; } = 8;
-        public ReadDataModel ReadDataModel { get; set; }
+        private int _StartAddress;
+
+        public int StartAddress
+        {
+            get { return _StartAddress; }
+            set { _StartAddress = value;
+                OnPropertyChanged();
+            }
+        }
+        private int _NumAddress=8;
+
+        public int NumAddress
+        {
+            get { return _NumAddress; }
+            set { _NumAddress = value;
+                OnPropertyChanged();
+            }
+        }
+
         private int _SlaveId;
 
         public int SlaveId
@@ -86,9 +109,13 @@ namespace IntelliMonWPF.Models
             ModbusEnum.ModbusRead.ReadInputRegister => "04",
             _ => "未知类型"
         };
-        public PointModel PointModel { get; set; }
+        public PointModel PointModels { get; set; }
         public event PropertyChangedEventHandler? PropertyChanged;
         //界面参数
+        private void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
     }
     public class PointModel : INotifyPropertyChanged
     {

@@ -1,0 +1,75 @@
+﻿<UserControl x:Class="IntelliMonWPF.Views.DataMonitoringUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:IntelliMonWPF.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" 
+             d:DesignWidth="800">
+
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- 页面标题 -->
+        <TextBlock Grid.Row="0"
+                   Text="寄存器数据监控"
+                   FontSize="16"
+                   FontWeight="Bold"
+                   Margin="0 0 0 8" />
+
+        <!-- 标签页：直接绑定ViewModel的列表 -->
+        <TabControl Grid.Row="1" Margin="0 5 0 0">
+            <!-- Int寄存器：ItemsSource绑定IntRegisters -->
+            <TabItem Header="Int寄存器（整数型数据）">
+                <DataGrid ItemsSource="{Binding IntRegisters}"  
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          RowHeaderWidth="0"
+                          Margin="2"
+                          IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <!-- 绑定Data<int>.Name（原Key） -->
+                        <DataGridTextColumn Header="寄存器标识"
+                                            Binding="{Binding Name}"
+                                            Width="180" />
+                        <!-- 绑定Data<int>.Value -->
+                        <DataGridTextColumn Header="当前值"
+                                            Binding="{Binding Value}"
+                                            Width="*" />
+                        <!-- 绑定Data<int>.SlaveId -->
+                        <DataGridTextColumn Header="所属从站"
+                                            Binding="{Binding SlaveId}" 
+                                            Width="100" />
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+
+            <!-- Float寄存器：ItemsSource绑定FloatRegisters -->
+            <TabItem Header="Float寄存器（小数型数据）">
+                <DataGrid ItemsSource="{Binding FloatRegisters}"
+                          AutoGenerateColumns="False"
+                          CanUserAddRows="False"
+                          RowHeaderWidth="0"
+                          Margin="2"
+                          IsReadOnly="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="寄存器标识"
+                                            Binding="{Binding Name}"
+                                            Width="180" />
+                        <!-- Float值保留2位小数 -->
+                        <DataGridTextColumn Header="当前值（保留2位小数）"
+                                            Binding="{Binding Value, StringFormat=F2}"
+                                            Width="*" />
+                        <DataGridTextColumn Header="所属从站"
+                                            Binding="{Binding SlaveId}"
+                                            Width="100"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+            </TabItem>
+        </TabControl>
+    </Grid>
+</UserControl>

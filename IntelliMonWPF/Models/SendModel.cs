@@ -8,13 +8,12 @@ using System.Threading.Tasks;
 namespace IntelliMonWPF.Models
 {
     
-    internal class SendModel
+    public class SendModel
     {
         public byte SavelId { get; set; }
         public ushort StartAddre { get; set; }
         public ModbusEnum.SendType SendType { get; set; }
         public Dictionary<ModbusEnum.SendType, Data> SendDataTypr { get; set; } = new Dictionary<ModbusEnum.SendType, Data>();
-        public string Sttus { get; set; } = "";
     };
     public class Data
     {

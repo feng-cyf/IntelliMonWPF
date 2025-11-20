@@ -1,4 +1,5 @@
 ﻿using IntelliMonWPF.HttpClient;
+using IntelliMonWPF.Views.Page;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ namespace IntelliMonWPF.ViewModels
 {
     public class MainWindowViewModel : BindableBase
     {
+        private IContainerProvider container;
         private readonly IRegionManager _regionManager;
         private object _selectedNavigationItem;
         public IRegionNavigationJournal _navigationJournal;
@@ -31,7 +33,7 @@ namespace IntelliMonWPF.ViewModels
         public ICommand NavigateCommand { get; }
         private readonly DispatcherTimer _timer;
 
-        public MainWindowViewModel(IRegionManager regionManager)
+        public MainWindowViewModel(IRegionManager regionManager, IContainerProvider container)
         {
             _regionManager = regionManager;
 
@@ -39,19 +41,21 @@ namespace IntelliMonWPF.ViewModels
             {
             new NavigationItem { Title = "设备管理", ViewName = "DeviceManagementUC", Icon = "\uE871" },
             new NavigationItem { Title = "点表配置", ViewName = "ModbusPointConfigControl", Icon = "\uE8A5" },
-            new NavigationItem { Title = "实时监控", ViewName = "RealtimeMonitoringView", Icon = "\uE8B0" },
+            new NavigationItem { Title = "实时监控", ViewName = "DataMonitoringUC", Icon = "\uE8B0" },
             new NavigationItem { Title = "员工管理", ViewName = "EmployeeManagementView", Icon = "\uE774" },
             new NavigationItem { Title = "系统设置", ViewName = "SystemSettingsView", Icon = "\uE713" }
             };
 
             NavigateCommand = new DelegateCommand<object>(Navigate);
-            _timer= new DispatcherTimer();
+            _timer = new DispatcherTimer();
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += (s, e) =>
             {
                 Time = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
             };
             _timer.Start();
+            ShowApiLogCmd = new DelegateCommand(ShowApiLog);
+            this.container = container;
         }
 
         private void Navigate(object navigationItem)
@@ -78,7 +82,33 @@ namespace IntelliMonWPF.ViewModels
 
             }
         }
+        public DelegateCommand ShowApiLogCmd { get; private set; }
+        public void ShowApiLog()
+        {
+            // 如果已经打开则置顶并返回
+            foreach (var item in App.Current.Windows)
+            {
+                if (item is ApiLoggingMainWindow api)
+                {
+                    api.Topmost = true;
+                    return;
+                }
+            }
 
+            // 使用容器解析，这样 Prism 的注册/自动装配才会生效
+            try
+            {
+                var apiLoggingMainWindow = container.Resolve<IntelliMonWPF.Views.Page.ApiLoggingMainWindow>();
+                apiLoggingMainWindow.WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen;
+                apiLoggingMainWindow.Show();
+            }
+            catch
+            {
+                // 回退到原来的创建方式，避免在容器不可用时崩溃
+                var apiLoggingMainWindow = new ApiLoggingMainWindow() { WindowStartupLocation = System.Windows.WindowStartupLocation.CenterScreen };
+                apiLoggingMainWindow.Show();
+            }
+        }
         #region 界面操作
         public DelegateCommand GoBackCommand => new DelegateCommand(() =>
         {

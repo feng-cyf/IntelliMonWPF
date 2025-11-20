@@ -1,8 +1,13 @@
 ﻿using IntelliMonWPF.DTOs;
 using IntelliMonWPF.Event;
+using IntelliMonWPF.Event.EventBus;
 using IntelliMonWPF.HttpClient;
+using IntelliMonWPF.IF_Implements.Factory;
+using IntelliMonWPF.Interface.IFactory;
+using IntelliMonWPF.Interface.IMangerInferface;
 using IntelliMonWPF.Models;
-using IntelliMonWPF.Models.Manger;
+using IntelliMonWPF.Services;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -16,15 +21,18 @@ using System.Windows.Data;
 
 namespace IntelliMonWPF.ViewModels
 {
-    internal class ModbusPointConfigControlViewModel : BindableBase
+    public class ModbusPointConfigControlViewModel : BindableBase
     {
+        private DataBus dataBus = DataBus.Instance;
         private IDialogService dialogService;
-        private ModbusDictManger modbusDictManger;
+        private IDictManger<string,DeviceModel> modbusDictManger;
+        private IDictMangerFactory dictMangerFactory;
         private DeviceSaveApiClient deviceSaveApiClient = new();
         private readonly IEventAggregator eventAggregator;
-        public ModbusPointConfigControlViewModel(IDialogService dialogService, ModbusDictManger modbusDictManger, IEventAggregator eventAggregator)
+        public ModbusPointConfigControlViewModel(IDialogService dialogService, DictMangerFactory dictMangerFactory, IEventAggregator eventAggregator)
         {
-            this.modbusDictManger = modbusDictManger;
+            this.dictMangerFactory = dictMangerFactory;
+            this.modbusDictManger = dictMangerFactory.CreateDictManger<string, DeviceModel>(DictMangerType.DeviceModel);
             this.dialogService = dialogService;
             AddPointCmd = new DelegateCommand(AddPoint);
             PointList = new ObservableCollection<PointModel>();
@@ -32,6 +40,9 @@ namespace IntelliMonWPF.ViewModels
             this.eventAggregator = eventAggregator;
             SavePointCmd = new DelegateCommand(async () => await SavePoint());
             UpdatePointCmd = new DelegateCommand(async () => await UpdatePoint());
+            SearchPointCmd= new DelegateCommand(SeatchPoint);
+            RemovePointEvent.GetRemovePointEvent += RemovePoint;
+            UpdatePointEvent.GetUpdatePointEvent += UPdatePointList;
         }
         private PointModel _SelectPoint;
 
@@ -60,6 +71,24 @@ namespace IntelliMonWPF.ViewModels
                 PointView?.Refresh();
             }
         }
+        private void RemovePoint(PointModel pm)
+        {
+            if (PointList.Contains(pm))
+            {
+                PointList.Remove(pm);
+                LoggingService.Instance.Publish(LogType.PointConfig, $"移除设备 {pm.mapDevice.Value.Item1} 从站 {pm.mapDevice.Value.Item2} 点 {pm.PointName} 配置");
+            }
+        }
+        private void UPdatePointList(UpdatePointClass pm)
+        {
+            var data = PointList.Where(x=>x.mapDevice.Key==pm.PointName
+             && x.mapDevice.Value.Item1==pm.DeviceName).FirstOrDefault();
+            if (data == null) return;
+            data.Len=pm.Length;
+            data.mapDevice= new KeyValuePair<string, (string, int)>(pm.PointName, (pm.DeviceName, pm.PointId));
+            data.StartAddress=pm.StartAddress.ToString();
+            data.RegisterType=pm.RegisterType;
+        }
         public DelegateCommand SavePointCmd { get; set; }
         private async Task SavePoint()
         {
@@ -81,6 +110,8 @@ namespace IntelliMonWPF.ViewModels
             ApiRequest<List<PointDTO>> apiRequest = new ApiRequest<List<PointDTO>>() { Route = "deviceSave/data/pointSave", Method = RestSharp.Method.Post, Parsmeters = pointDTOs };
             var reault = await deviceSaveApiClient.PointSave(apiRequest);
             eventAggregator.GetEvent<ShowMesssgeWindow>().Publish(new Tuple<string, int>(reault.message, 3));
+            var json= JsonConvert.SerializeObject(reault);
+            LoggingService.Instance.Publish(LogType.PointApi, $"保存点位返回结果:{json}");
         }
 
         private string _Search;
@@ -137,11 +168,16 @@ namespace IntelliMonWPF.ViewModels
             var result = MessageBox.Show("是否确认删除该点位？", "删除点位", MessageBoxButton.OKCancel, MessageBoxImage.Warning);
             if (SelectPoint != null && result == MessageBoxResult.OK)
             {
+                var device = modbusDictManger.GetValue(SelectPoint.mapDevice.Value.Item1);
+                int startAddress = 0;
+                if (!string.IsNullOrWhiteSpace(SelectPoint.StartAddress))
+                {
+                    int.TryParse(SelectPoint.StartAddress, out startAddress);
+                }
+                var readModel = device.readMangerModbus[(SelectPoint.mapDevice.Value.Item1, SelectPoint.mapDevice.Value.Item2, startAddress)];
+                readModel.PointModels = null;
                 PointList.Remove(SelectPoint);
-                var device = modbusDictManger.ModbusMangeDict[SelectPoint.mapDevice.Value.Item1];
-                var readModel = device.readMangerModbus[(SelectPoint.mapDevice.Value.Item1, SelectPoint.mapDevice.Value.Item2)];
-                readModel.PointModel = null;
-                PointList.Remove(SelectPoint);
+                LoggingService.Instance.Publish(LogType.PointConfig, $"删除设备 {SelectPoint.mapDevice.Value.Item1} 从站 {SelectPoint.mapDevice.Value.Item2} 点 {SelectPoint.PointName} 配置");
             }
         });
 
@@ -170,6 +206,8 @@ namespace IntelliMonWPF.ViewModels
             };
             var result= await deviceSaveApiClient.EditPoint(apiRequest);
             eventAggregator.GetEvent<ShowMesssgeWindow>().Publish(new Tuple<string, int>(result.message, 3));
+            var json=JsonConvert.SerializeObject(result);
+            LoggingService.Instance.Publish(LogType.PointApi, $"更新点位返回结果:{json}");
         }
         private PointSearch _PointSearch;
 
@@ -180,7 +218,8 @@ namespace IntelliMonWPF.ViewModels
                 RaisePropertyChanged();
             }
         }
-        public DelegateCommand SearchPointCmd => new DelegateCommand(() =>
+        public DelegateCommand SearchPointCmd { get; set; }
+        private void SeatchPoint()
         {
             if (PointSearch == null) return;
             PointView.Filter = x =>
@@ -206,10 +245,26 @@ namespace IntelliMonWPF.ViewModels
                 return matches;
             };
             PointView.Refresh();
+        }
+        public DelegateCommand PandasCmd => new DelegateCommand(() =>
+        {
+            if ( PointList.Count==0)
+            {
+                eventAggregator.GetEvent<ShowMesssgeWindow>().Publish(new Tuple<string, int>("列表无数据", 3));
+                return;
+            }
+           DialogParameters parameter = new DialogParameters();
+            parameter.Add("Pointlist", PointList);
+            dialogService.ShowDialog("ToCEUC", parameter);
         });
-
+        public DelegateCommand RefrashData => new DelegateCommand(() =>
+        {
+            if (PointList.Count == 0) return;
+            dataBus.ClearOldKey(PointList.Select(x=>x.PointName));
+            LoggingService.Instance.Publish(LogType.PointConfig, $"清除点位旧数据缓存");
+        });
     }
-    class PointSearch
+    public class PointSearch
     {
         public string PointName { get; set; } = "";
         public string RegisterType { get; set; } = "";

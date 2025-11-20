@@ -30,7 +30,10 @@
             <TextBlock Text="Connection" FontWeight="SemiBold" Margin="0,5,0,2"/>
             <ComboBox SelectedItem="{Binding SelectModbus}" x:Name="cboConnection" Width="200" SelectionChanged="cboConnection_SelectionChanged" ItemsSource="{Binding Modbus}" DisplayMemberPath="Value" SelectedValuePath="Key">
             </ComboBox>
-            
+            <UniformGrid Columns="2">
+                <TextBlock Text="心跳检测地址" VerticalAlignment="Center"></TextBlock>
+                <TextBox  Margin="-190 0 0 0 " VerticalAlignment="Center" Width="200" Text="{Binding HeartIze}"></TextBox>
+            </UniformGrid>
         </StackPanel>
 
         <!-- 配置内容区域 -->

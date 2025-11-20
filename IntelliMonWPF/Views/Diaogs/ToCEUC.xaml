@@ -1,0 +1,219 @@
+﻿<UserControl x:Class="IntelliMonWPF.Views.Diaogs.ToCEUC"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:IntelliMonWPF.Views.Diaogs"
+             mc:Ignorable="d" 
+             Height="450" Width="400"
+             Background="White">
+    <!-- 资源定义：统一控件样式（可提取到全局资源字典） -->
+    <UserControl.Resources>
+        <!-- 阴影效果：所有面板通用 -->
+        <DropShadowEffect x:Key="DropShadowEffect"
+                       BlurRadius="8"
+                       ShadowDepth="2"
+                       Opacity="0.2"
+                       Direction="270"/>
+
+        <!-- 主要按钮样式（保存/打开目录） -->
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="#3182CE"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <!-- 鼠标悬浮/点击反馈 -->
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#2B6CB0"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#2C5282"/>
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Background" Value="#A0B8D8"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- 次要按钮样式（取消） -->
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#4A5568"/>
+            <Setter Property="BorderBrush" Value="#CBD5E0"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <!-- 鼠标悬浮/点击反馈 -->
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F7FAFC"/>
+                </Trigger>
+                <Trigger Property="IsPressed" Value="True">
+                    <Setter Property="Background" Value="#EDF2F7"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+    <!-- 外层边框：添加圆角和阴影，提升视觉层次 -->
+    <Border Margin="5" 
+            CornerRadius="8" 
+            BorderBrush="#E0E0E0" 
+            BorderThickness="1"
+            Effect="{StaticResource DropShadowEffect}">
+        <Grid Margin="15">
+            <!-- 重新定义行：增加路径显示行，优化高度分配 -->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <!-- 标题行 -->
+                <RowDefinition Height="50"/>
+                <!-- 文件名输入行 -->
+                <RowDefinition Height="50"/>
+                <!-- 格式选择行 -->
+                <RowDefinition Height="*"/>
+                <!-- 路径显示行（占满剩余空间） -->
+                <RowDefinition Height="60"/>
+                <!-- 按钮行 -->
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="120"/>
+                <!-- 标签列（固定宽度） -->
+                <ColumnDefinition Width="*"/>
+                <!-- 输入控件列（自适应） -->
+            </Grid.ColumnDefinitions>
+
+            <!-- 1. 标题行：居中显示，加重字体 -->
+            <TextBlock Grid.Row="0" 
+                       Grid.ColumnSpan="2"            
+                       Text="Excel文件保存" 
+                       FontSize="22" 
+                       FontWeight="Bold" 
+                       Foreground="#2D3748"
+                       Margin="0 0 0 15"
+                       HorizontalAlignment="Center"/>
+
+            <!-- 2. 文件名输入行 -->
+            <TextBlock Grid.Row="1" 
+                       Grid.Column="0"
+                       Text="保存文件名：" 
+                       VerticalAlignment="Center" 
+                       Foreground="#4A5568"
+                       FontSize="14"/>
+            <TextBox Grid.Row="1" 
+                     Grid.Column="1"
+                     Margin="5 0 0 0" 
+                     Height="35" 
+                     Padding="8"
+                     BorderBrush="#CBD5E0" 
+                     BorderThickness="1"
+                     FontSize="14"
+                     Text="{Binding Name}"
+                     TextWrapping="NoWrap"
+                     ToolTip="请输入不包含特殊字符的文件名">
+                <!-- 输入提示：为空时显示 -->
+                <TextBox.Resources>
+                    <Style TargetType="TextBox">
+                        <Setter Property="Text" Value=""/>
+                        <Style.Triggers>
+                            <Trigger Property="Text" Value="">
+                                <Setter Property="Background">
+                                    <Setter.Value>
+                                        <VisualBrush Stretch="None">
+                                            <VisualBrush.Visual>
+                                                <TextBlock Text="默认保存时间" 
+                                                           Foreground="#A0AEC0" 
+                                                           FontSize="14"
+                                                           Margin="8 0 0 0"/>
+                                            </VisualBrush.Visual>
+                                        </VisualBrush>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </TextBox.Resources>
+            </TextBox>
+
+            <!-- 3. 文件格式选择行 -->
+            <TextBlock Grid.Row="2" 
+                       Grid.Column="0"
+                       Text="保存格式：" 
+                       VerticalAlignment="Center" 
+                       Foreground="#4A5568"
+                       FontSize="14"/>
+            <DockPanel Grid.Row="2" 
+                       Grid.Column="1"
+                       Margin="5 0 0 0" 
+                       VerticalAlignment="Center">
+                <!-- 复选框：默认选中xlsx（常用格式），增加间距 -->
+                <RadioButton Content="保存为 CSV" 
+                          Margin="0 0 15 0" 
+                          FontSize="13"
+                          Foreground="#4A5568"
+                          IsChecked="{Binding Type}"
+                          VerticalAlignment="Center"/>
+                <RadioButton Content="保存为 XLSX" 
+                          IsChecked="True"          
+                          FontSize="13"
+                          Foreground="#4A5568"
+                          VerticalAlignment="Center"/>
+            </DockPanel>
+
+            <!-- 4. 保存路径显示行（核心新增功能） -->
+            <TextBlock Grid.Row="3" 
+                       Grid.Column="0"
+                       Text="保存路径：" 
+                       VerticalAlignment="Top" 
+                       Foreground="#4A5568"
+                       FontSize="14"
+                       Margin="0 5 0 0"/>
+            <Grid Grid.Row="3" 
+                  Grid.Column="1"
+                  Margin="5 5 0 0">
+                <!-- 路径显示文本框（只读） -->
+                <TextBox
+                         Padding="8"
+                         BorderBrush="#CBD5E0" 
+                         BorderThickness="1"
+                         FontSize="13"
+                         Foreground="#2D3748"
+                         IsReadOnly="True"         
+                         Text="{Binding Part}"
+                         TextWrapping="Wrap"/>       <!-- 路径过长时自动换行 -->
+                <!-- 打开目录按钮（嵌入文本框右侧） -->
+                <Button Content="打开目录" 
+                        Height="28" 
+                        Width="80"
+                        Margin="0 0 5 5"
+                        HorizontalAlignment="Right" 
+                        Command="{Binding GetPart}"
+                        VerticalAlignment="Bottom"
+                        Style="{StaticResource PrimaryButtonStyle}"/>
+            </Grid>
+
+            <!-- 5. 底部按钮行（保存/取消） -->
+            <StackPanel Grid.Row="4" 
+                        Grid.ColumnSpan="2"
+                        Orientation="Horizontal" 
+                        HorizontalAlignment="Right" 
+                        VerticalAlignment="Center"
+                        Margin="0 10 0 0">
+                <!-- 取消按钮（次要操作） -->
+                <Button Content="取消" 
+                        Height="35" 
+                        Width="90"
+                        Margin="0 0 10 0"
+                        FontSize="14"
+                        Style="{StaticResource SecondaryButtonStyle}"/>
+                <!-- 保存按钮（主要操作，突出显示） -->
+                <Button Content="保存" 
+                        Height="35" 
+                        Width="90"
+                        FontSize="14"
+                        Command="{Binding PandasCmd}"
+                        Style="{StaticResource PrimaryButtonStyle}"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+
+   
+</UserControl>

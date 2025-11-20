@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.HttpClient
 {
-    internal class ApiResponse<T>
+    public class ApiResponse<T>
     {
         public int code { get; set; }
         public string message { get; set; }

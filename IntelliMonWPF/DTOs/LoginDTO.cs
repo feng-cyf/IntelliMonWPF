@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.DTOs
 {
-    internal class LoginDTO
+    public class LoginDTO
     {
         public string username { get; set; }
         public string password { get; set; }

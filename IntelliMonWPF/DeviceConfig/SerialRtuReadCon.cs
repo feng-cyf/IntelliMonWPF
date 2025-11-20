@@ -1,5 +1,7 @@
 ﻿using IntelliMonWPF.DTOs;
 using IntelliMonWPF.Enum;
+using IntelliMonWPF.Event.EventBus;
+using IntelliMonWPF.Helper;
 using IntelliMonWPF.HttpClient;
 using IntelliMonWPF.Models;
 using Modbus;
@@ -8,8 +10,9 @@ using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Windows;
 
-internal class SerialRtuReadCon
+public class SerialRtuReadCon
 {
+    private readonly SchedulerHelper _scheduler = SchedulerHelper.Instance;
     public static class SerialPortLock
     {
         public static readonly SemaphoreSlim Lock = new SemaphoreSlim(1, 1);
@@ -59,13 +62,13 @@ internal class SerialRtuReadCon
 
     public async Task ReadOnceAsync(Func<ReadModel, Task> rebuildFunc, ReadModel readModel, ModbusMaster master)
     {
-        await SerialPortLock.Lock.WaitAsync(readModel.cts.Token);  // 🔒 串口全局锁
+        await SerialPortLock.Lock.WaitAsync(readModel.cts.Token); 
         try
         {
             byte slaveId = Convert.ToByte(readModel.SlaveId);
             ushort startAddr = (ushort)readModel.StartAddress;
             ushort count = (ushort)readModel.NumAddress;
-
+            object data=null;
             switch (readModel.ModbusRead)
             {
                 case ModbusEnum.ModbusRead.ReadCoils:
@@ -73,6 +76,7 @@ internal class SerialRtuReadCon
                     if (coils != null)
                     {
                         readModel.Status = $"读到 {((bool[])coils).Length} 个线圈";
+                        data = coils;
                         // 可根据需要发送线圈数据
                         // await SendCoilData(readModel, (bool[])coils);
                     }
@@ -83,6 +87,7 @@ internal class SerialRtuReadCon
                     if (inputs != null)
                     {
                         readModel.Status = $"读到 {((bool[])inputs).Length} 个输入线圈";
+                        data = inputs;
                         // 可发送输入线圈数据
                     }
                     break;
@@ -92,6 +97,7 @@ internal class SerialRtuReadCon
                     if (regs != null)
                     {
                         readModel.Status = $"读到 {regs.Length} 个寄存器";
+                        data = regs;
                         //await SendData(readModel, regs);  // 调用 API 发送数据
                     }
                     break;
@@ -101,15 +107,17 @@ internal class SerialRtuReadCon
                     if (inputRegs != null)
                     {
                         readModel.Status = $"读到 {inputRegs.Length} 个输入寄存器";
+                        data = inputRegs;
                         // 可发送输入寄存器数据
                         //await SendData(readModel, inputRegs);
                     }
                     break;
-
+                
                 default:
                     readModel.Status = "未知读取类型";
                     break;
             }
+           var t = _scheduler.RunWithTimeout((ct) => { DataConverter.ConvertData(readModel, data); },TimeSpan.FromSeconds(3));
         }
         catch (Exception ex)
         {
@@ -120,7 +128,6 @@ internal class SerialRtuReadCon
             SerialPortLock.Lock.Release();  // 🔓 释放锁
         }
     }
-
 
     private async Task<T> RunAsync<T>(Task<T> task, ReadModel rm, Func<ReadModel, Task> rebuildFunc)
     {

@@ -2,13 +2,16 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using IntelliMonWPF.IF_Implements.Factory;
+using IntelliMonWPF.Interface.IFactory;
+using IntelliMonWPF.Interface.IMangerInferface;
 using IntelliMonWPF.Models;
-using IntelliMonWPF.Models.Manger;
+using IntelliMonWPF.Services;
 using Prism.Commands;
 
 namespace IntelliMonWPF.ViewModels.SettingsViewModel
 {
-    internal class EditPointUCViewModel : BindableBase, IDialogAware
+    public class EditPointUCViewModel : BindableBase, IDialogAware
     {
         #region 1. 基础绑定属性（设备/从站相关）
         // 设备名称列表（绑定ComboBox的ItemsSource）
@@ -185,17 +188,17 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
             // 1. 数据校验（如单位不为空、缩放因子合理等）
             if (string.IsNullOrWhiteSpace(DataType))
             {
-                // 可通过DialogService弹出提示（需注入IDialogService）
                 return;
             }
-            var point= ModbusDictManger.ModbusMangeDict[SelectDeviceName].readMangerModbus[(SelectDeviceName, SelectSlaveId)].PointModel;
+            var point= ModbusDictManger.GetValue(SelectDeviceName).readMangerModbus[(SelectDeviceName, SelectSlaveId, Convert.ToInt32(StartAddress))].PointModels;
             point.DataType = DataType;
             point.AccessType = AccessType;
             point.Unit = Unit;
             point.ScaleFactor = ScaleFactor;
             point.Offset = Offset;
             point.Desc = Desc;
-
+            RequestClose.Invoke(new DialogResult(ButtonResult.OK));
+            LoggingService.Instance.Publish(LogType.PointConfig, $"更新设备 {SelectDeviceName} 从站 {SelectSlaveId} 点 {PointName} 配置");
 
         }
 
@@ -207,13 +210,16 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
         #endregion
 
         #region 7. 构造函数（初始化命令）
-        private ModbusDictManger ModbusDictManger;
-        public EditPointUCViewModel(ModbusDictManger modbusDictManger)
+        private IDictManger<string,DeviceModel> ModbusDictManger;
+        private readonly IDictMangerFactory _dictMangerFactory;
+
+        public EditPointUCViewModel(DictMangerFactory dictMangerFactory)
         {
             // 初始化命令（Prism的DelegateCommand）
             UpdateCmd = new DelegateCommand(ExecuteUpdateCmd);
             CancelCmd = new DelegateCommand(ExecuteCancelCmd);
-            ModbusDictManger = modbusDictManger;
+            _dictMangerFactory= dictMangerFactory;
+            ModbusDictManger = _dictMangerFactory.CreateDictManger<string, DeviceModel>(DictMangerType.DeviceModel);
         }
         #endregion
     }

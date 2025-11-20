@@ -36,6 +36,7 @@
 
   <ItemGroup>
     <PackageReference Include="Autofac.Web" Version="7.0.0" />
+    <PackageReference Include="AutoMapper" Version="15.0.1" />
     <PackageReference Include="MaterialDesignThemes" Version="5.2.1" />
     <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.135" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

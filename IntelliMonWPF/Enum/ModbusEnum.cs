@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.Enum
 {
-    internal class ModbusEnum
+    public class ModbusEnum
     {
         public enum Modbus
         {

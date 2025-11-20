@@ -7,7 +7,7 @@ using System.Windows;
 
 namespace IntelliMonWPF.Helper
 {
-    internal class PassWordBoxHelper
+    public class PassWordBoxHelper
     {
         public static string GetPassWord(DependencyObject obj)
         {

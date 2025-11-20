@@ -1,10 +1,14 @@
 ﻿using Autofac.Integration.Web;
 using IntelliMonWPF.Base;
 using IntelliMonWPF.Enum;
+using IntelliMonWPF.Helper.Tools;
+using IntelliMonWPF.IF_Implements.Factory;
+using IntelliMonWPF.IF_Implements.MangerInferface;
 using IntelliMonWPF.Interface;
 using IntelliMonWPF.Interface.Ichannel;
+using IntelliMonWPF.Interface.IFactory;
+using IntelliMonWPF.Interface.IMangerInferface;
 using IntelliMonWPF.Models;
-using IntelliMonWPF.Models.Manger;
 using Modbus;
 using Modbus.Device;
 using Modbus.IO;
@@ -25,7 +29,7 @@ using static MaterialDesignThemes.Wpf.Theme.ToolBar;
 
 namespace IntelliMonWPF.IF_Implements.Channel
 {
-    internal class ModbusReadChannel : IModbusReadChannel
+    public class ModbusReadChannel : IModbusReadChannel
     {
         #region 字段/属性/事件（一字未改）
         private SerialPort SerialPort;
@@ -33,8 +37,15 @@ namespace IntelliMonWPF.IF_Implements.Channel
         private ModbusMaster master;
         private DispatcherTimer timer;
         private event Action Closer;
-        private ModbusDictManger ModbusDictManger;
+        private SingelTool SingelTool = SingelTool.singelTool;
         private IMessages messages = ContainerLocator.Container.Resolve<IMessages>();
+        private IDictMangerFactory dictMangerFactory;
+        private IDictManger<string,DeviceModel> modbusDictManger;
+        public ModbusReadChannel(IDictMangerFactory dictMangerFactory)
+        {
+            this.dictMangerFactory = dictMangerFactory;
+            modbusDictManger = dictMangerFactory.CreateDictManger<string,DeviceModel>(DictMangerType.DeviceModel);
+        }
         public bool IsConnected
         {
             get
@@ -189,9 +200,8 @@ namespace IntelliMonWPF.IF_Implements.Channel
                     ReadTimeout = 1000,
                     WriteTimeout = 1000
                 };
-                ModbusDictManger modbusDictManger = ContainerLocator.Container.Resolve<ModbusDictManger>();
                 SerialPort.Open();
-                _resource = new LoggingSerialResource(SerialPort, modbusDictManger);
+                _resource = new LoggingSerialResource(SerialPort);
 
                 if (SerialPort.IsOpen)
                 {
@@ -219,14 +229,14 @@ namespace IntelliMonWPF.IF_Implements.Channel
                messages.ShowMessage("未知TCP配置类型");
                 return false;
             }
-            ModbusDictManger modbusDictManger = ContainerLocator.Container.Resolve<ModbusDictManger>();
             modbusSniffer = new ModbusSniffer();
             try
             {
-                TcpClient = modbusSniffer.CreateProxy(localPort: modbusDictManger.LocationPort(),
+                TcpClient = modbusSniffer.CreateProxy(localPort: SingelTool.LocationPort(),
                                            remoteIp: tcpClientModel.Ip,
                                            remotePort: tcpClientModel.Port,
-                                           modbusDictManger);
+                                           SingelTool
+                                           );
                 master = ModbusIpMaster.CreateIp(TcpClient);
                 if (master != null)
                 {
@@ -234,7 +244,7 @@ namespace IntelliMonWPF.IF_Implements.Channel
                     master.Transport.WriteTimeout = 2000;
                     master.Transport.Retries = 0;
                 }
-                var a = await master.ReadHoldingRegistersAsync(1, 0, 1);
+                var a = await master.ReadHoldingRegistersAsync((byte)deviceModel.HeartSize, 0, 1);
                 IsTcpConnecting = (a != null && a.Length > 0);
                 return a != null && a.Length > 0;
             }
@@ -275,7 +285,8 @@ namespace IntelliMonWPF.IF_Implements.Channel
         private async Task RebulidTcpASync(ReadModel rm)
         {
             rm.MaxRebuile++;
-            rm.cts.Cancel(); rm.cts.Dispose();
+            rm.cts.Cancel();
+            rm.cts.Dispose();
             if (rm.MaxRebuile <= 3)
             {
                 rm.Status = "正在尝试重启";
@@ -290,11 +301,9 @@ namespace IntelliMonWPF.IF_Implements.Channel
                 rm.Status = "未知异常，重启失败，请排查后打开";
             }
         }
-
         private void CancelAllReadTokens()
         {
-            var dict = ContainerLocator.Container.Resolve<ModbusDictManger>()
-                                .ModbusMangeDict[DeviceModel.DeviceName].readMangerModbus;
+            var dict = modbusDictManger.GetValue(DeviceModel.DeviceName).readMangerModbus;
             foreach (var item in dict.Values)
             {
                 item.cts.Cancel(); item.cts.Dispose(); item.cts = new CancellationTokenSource();
@@ -303,8 +312,7 @@ namespace IntelliMonWPF.IF_Implements.Channel
 
         private void SetAllStatus(string msg)
         {
-            var dict = ContainerLocator.Container.Resolve<ModbusDictManger>()
-                                .ModbusMangeDict[DeviceModel.DeviceName].readMangerModbus;
+            var dict = modbusDictManger.GetValue(DeviceModel.DeviceName).readMangerModbus;
             foreach (var item in dict.Values)
             {
                 item.cts.Cancel(); item.cts.Dispose(); item.Status = msg;
@@ -312,8 +320,7 @@ namespace IntelliMonWPF.IF_Implements.Channel
         }
         private void ReRegisterAllReads()
         {
-            var dict = ContainerLocator.Container.Resolve<ModbusDictManger>()
-                                .ModbusMangeDict[DeviceModel.DeviceName].readMangerModbus;
+            var dict = modbusDictManger.GetValue(DeviceModel.DeviceName).readMangerModbus;
             foreach (var item in dict.Values)
             {
                 item.cts= new CancellationTokenSource();

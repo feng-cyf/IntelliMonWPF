@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.HttpClient
 {
-    internal class DeviceSaveApiClient
+    public class DeviceSaveApiClient
     {
         string BaseUri = "http://127.0.0.1:8000";
         public async Task<ApiResponse<JToken>> DeviceSave(ApiRequest<List<DeviceDTO>> api)
@@ -99,6 +99,31 @@ namespace IntelliMonWPF.HttpClient
             catch (Exception)
             {
 
+                throw;
+            }
+        }
+        internal async Task<ApiResponse<JToken>> GetTOCE(ApiRequest<TOCEDTO> api)
+        {
+            try
+            {
+                
+                var request = new RestRequest(api.Route, api.Method);
+                var Json= JsonConvert.SerializeObject(api.Parsmeters);
+                request.AddStringBody(Json, api.ContentType);
+                var option = new RestClientOptions(BaseUri) { Timeout = TimeSpan.FromSeconds(2) };
+                var client = new RestClient(option);
+                var result = await client.ExecuteAsync(request);
+                if (result.StatusCode == System.Net.HttpStatusCode.OK)
+                {
+                    return JsonConvert.DeserializeObject<ApiResponse<JToken>>(result.Content);
+                }
+                else
+                {
+                    return new ApiResponse<JToken> { code = -99, message = "获取失败请检查服务器", data = null };
+                }
+            }
+            catch (Exception)
+            {
                 throw;
             }
         }

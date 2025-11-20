@@ -1,8 +1,11 @@
 ﻿using DryIoc.Messages;
 using IntelliMonWPF.Enum;
+using IntelliMonWPF.IF_Implements.Factory;
 using IntelliMonWPF.Interface;
+using IntelliMonWPF.Interface.IFactory;
+using IntelliMonWPF.Interface.IMangerInferface;
 using IntelliMonWPF.Models;
-using IntelliMonWPF.Models.Manger;
+using IntelliMonWPF.Services;
 using MaterialDesignThemes.Wpf;
 using System;
 using System.Collections.Generic;
@@ -14,7 +17,7 @@ using System.Windows;
 
 namespace IntelliMonWPF.ViewModels
 {
-    internal class SendUCViewModel : BindableBase,IDialogAware
+    public class SendUCViewModel : BindableBase,IDialogAware
     {
         public DialogCloseListener RequestClose { get; }=new DialogCloseListener();
 
@@ -28,12 +31,14 @@ namespace IntelliMonWPF.ViewModels
             
         }
         public ISnackbarMessageQueue MessageQueue { get; }
-        private ModbusDictManger ModbusDictManger { get; set; }
+        private IDictManger<string,DeviceModel> ModbusDictManger { get; set; }
+        private IDictMangerFactory dictMangerFactory;
         private IMessages messages;
-        public SendUCViewModel(ModbusDictManger modbusDictManger,IMessages messages)
+        public SendUCViewModel(DictMangerFactory dictMangerFactory,IMessages messages)
         {
-            ModbusDictManger = modbusDictManger;
-            MessageQueue= new SnackbarMessageQueue(TimeSpan.FromSeconds(4));
+            this.dictMangerFactory = dictMangerFactory;
+            ModbusDictManger = dictMangerFactory.CreateDictManger<string, DeviceModel>(DictMangerType.DeviceModel);
+            MessageQueue = new SnackbarMessageQueue(TimeSpan.FromSeconds(4));
             SendCmd = new DelegateCommand(async()=>await Send());
             CloseCmd = new DelegateCommand(Close);
             this.messages = messages;
@@ -144,7 +149,7 @@ namespace IntelliMonWPF.ViewModels
         public DelegateCommand SendCmd {  get; set; }
         private async Task Send()
         {
-            var master = ModbusDictManger.ModbusMangeDict[Name].Channel;
+            var master = ModbusDictManger.GetValue(Name).Channel;
             var sendModel = new SendModel() { SavelId=Convert.ToByte(SlaveId),StartAddre=(ushort)StartAddress,SendType=SelectFuction.Key};
             if (!SureData(SendData)) return;
 
@@ -209,6 +214,7 @@ namespace IntelliMonWPF.ViewModels
                     break;
             }
             SendStatus += $"\n已发送{SendData}";
+            LoggingService.Instance.Publish(LogType.DeviceConfig, $"向设备 {Name} 从站 {SlaveId} 发送数据 {SendData} ");
 
         }
         public DelegateCommand CloseCmd { get; set; }

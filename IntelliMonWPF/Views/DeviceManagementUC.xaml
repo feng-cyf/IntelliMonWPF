@@ -7,7 +7,7 @@
              mc:Ignorable="d" 
              xmlns:i="http://schemas.microsoft.com/xaml/behaviors" xmlns:core="http://prismlibrary.com/" xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
              d:DesignHeight="800" d:DesignWidth="1000">
-    <Grid Margin="0,0,0,-172">
+    <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="549*"/>
             <ColumnDefinition Width="451*"/>
@@ -55,17 +55,16 @@
         </UniformGrid>
         <Grid Grid.Row="2" Grid.ColumnSpan="2">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="249*"/>
-                <ColumnDefinition Width="126*"/>
-                <ColumnDefinition Width="125*"/>
+                <ColumnDefinition Width="3*"/>
+                <ColumnDefinition Width="1*"/>
             </Grid.ColumnDefinitions>
             <!-- 外层：设备列表 -->
             <DataGrid ItemsSource="{Binding Devices}"
           SelectedItem="{Binding SelectedDevice}"
           AutoGenerateColumns="False"
-          Grid.ColumnSpan="2"
+          Grid.Column="0"
           RowDetailsVisibilityMode="Visible"
-          IsReadOnly="True" Margin="0,0,0,28">
+          IsReadOnly="True" Margin="0,0,10,0">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="设备名称" Binding="{Binding DeviceName}" Width="150"/>
                     <DataGridTextColumn Header="类型"     Binding="{Binding Type}"       Width="120"/>
@@ -116,131 +115,141 @@
         Grid.Row="1"
          Background="Black"
          Foreground="White"/>
-
-
-            <Border Grid.Column="2" Background="White" CornerRadius="5" BorderBrush="#DDDDDD" BorderThickness="1" Margin="0,0,0,28">
-                <StackPanel Margin="15">
-                    <TextBlock Text="设备筛选" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
-                    <Expander Header="筛选条件" IsExpanded="True" Margin="0,0,0,10">
-                        <Grid Margin="10 5 0 5">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="Auto"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <TextBlock Text="设备名称:" Grid.Row="0" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding DeviceName, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0"/>
-                            <TextBlock Text="设备功能码:" Grid.Row="1" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding DeviceCon, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" Margin="5,0,0,0"/>
-                            <TextBlock Text="设备运行状态:" Grid.Row="2" VerticalAlignment="Center"/>
-                            <TextBox Text="{Binding DeviceStatus, UpdateSourceTrigger=PropertyChanged}" Grid.Row="2" Grid.Column="1" Margin="5,0,0,0"/>
-                            <Button Content="筛选查找" Command="{Binding SearchDeviceCmd}" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,10,0,0" 
+            <ScrollViewer Grid.Column="1"
+                  VerticalScrollBarVisibility="Auto"
+                  HorizontalScrollBarVisibility="Disabled"
+                  MaxHeight="800"
+                  VerticalAlignment="Stretch"
+                  HorizontalAlignment="Stretch">
+                <Border Background="White"
+                CornerRadius="5"
+                BorderBrush="#DDDDDD"
+                BorderThickness="1"
+                Margin="0,0,0,28">
+                    <StackPanel Margin="15">
+                        <TextBlock Text="设备筛选" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                        <Expander Header="筛选条件" IsExpanded="True" Margin="0,0,0,10">
+                            <Grid Margin="10 5 0 5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Text="设备名称:" Grid.Row="0" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding DeviceName, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0" Grid.Column="1" Margin="5,0,0,0"/>
+                                <TextBlock Text="设备功能码:" Grid.Row="1" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding DeviceCon, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" Margin="5,0,0,0"/>
+                                <TextBlock Text="设备运行状态:" Grid.Row="2" VerticalAlignment="Center"/>
+                                <TextBox Text="{Binding DeviceStatus, UpdateSourceTrigger=PropertyChanged}" Grid.Row="2" Grid.Column="1" Margin="5,0,0,0"/>
+                                <Button Content="筛选查找" Command="{Binding SearchDeviceCmd}" Grid.Row="3" Grid.ColumnSpan="2" Margin="0,10,0,0" 
                                     Background="#165DFF" Foreground="White" 
                                     BorderBrush="#165DFF" BorderThickness="1"/>
-                        </Grid>
-                    </Expander>
-                    <TextBlock Text="设备详情" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
+                            </Grid>
+                        </Expander>
+                        <TextBlock Text="设备详情" FontSize="16" FontWeight="Bold" Margin="0,0,0,15"/>
 
-                    <!-- 基本信息 -->
-                    <Expander Header="基本信息" IsExpanded="True" Margin="0,0,0,10">
-                        <Grid Margin="10,5,0,5">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="80"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                        <!-- 基本信息 -->
 
-                            <TextBlock Text="设备名称:" Grid.Row="0"/>
-                            <TextBlock Text="{Binding SelectedDevice.DeviceName}" Grid.Row="0" Grid.Column="1"/>
+                        <Expander Header="基本信息" IsExpanded="True" Margin="0,0,0,10">
+                            <Grid Margin="10,5,0,5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="设备类型:" Grid.Row="1" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedDevice.Type}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0"/>
-                        </Grid>
-                    </Expander>
+                                <TextBlock Text="设备名称:" Grid.Row="0"/>
+                                <TextBlock Text="{Binding SelectedDevice.DeviceName}" Grid.Row="0" Grid.Column="1"/>
 
-                    <!-- 通信参数 -->
-                    <Expander Header="通信参数" IsExpanded="True" Margin="0,0,0,10">
-                        <Grid Margin="10,5,0,5">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="80"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                                <TextBlock Text="设备类型:" Grid.Row="1" Margin="0,5,0,0"/>
+                                <TextBlock Text="{Binding SelectedDevice.Type}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0"/>
+                            </Grid>
+                        </Expander>
 
-                            <TextBlock Text="读取数量:" Grid.Row="0"/>
-                            <TextBlock Text="{Binding SelectedReadModel.NumAddress}" Grid.Row="0" Grid.Column="1"/>
+                        <!-- 通信参数 -->
+                        <Expander Header="通信参数" IsExpanded="True" Margin="0,0,0,10">
+                            <Grid Margin="10,5,0,5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="读取地址:" Grid.Row="1" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedReadModel.StartAddress}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0"/>
+                                <TextBlock Text="读取数量:" Grid.Row="0"/>
+                                <TextBlock Text="{Binding SelectedReadModel.NumAddress}" Grid.Row="0" Grid.Column="1"/>
 
-                            <TextBlock Text="从站ID:" Grid.Row="2" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedReadModel.SlaveId}" Grid.Row="2" Grid.Column="1" Margin="0,5,0,0"/>
+                                <TextBlock Text="读取地址:" Grid.Row="1" Margin="0,5,0,0"/>
+                                <TextBlock Text="{Binding SelectedReadModel.StartAddress}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0"/>
 
-                            <TextBlock Text="最大错误次数:" Grid.Row="3" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedReadModel.MaxError}" Grid.Row="3" Grid.Column="1" Margin="0,5,0,0"/>
-                            <TextBlock Text="设备自行故障:" Grid.Row="4" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedDevice.IsAutoCon}" Grid.Row="4" Grid.Column="1" Margin="0,5,0,0"/>
-                        </Grid>
-                    </Expander>
+                                <TextBlock Text="从站ID:" Grid.Row="2" Margin="0,5,0,0"/>
+                                <TextBlock Text="{Binding SelectedReadModel.SlaveId}" Grid.Row="2" Grid.Column="1" Margin="0,5,0,0"/>
 
-                    <!-- 运行参数 -->
-                    <Expander Header="运行参数" IsExpanded="True" Margin="0,0,0,10">
-                        <Grid Margin="10,5,0,5">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="80"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                                <TextBlock Text="最大错误次数:" Grid.Row="3" Margin="0,5,0,0"/>
+                                <TextBlock Text="{Binding SelectedReadModel.MaxError}" Grid.Row="3" Grid.Column="1" Margin="0,5,0,0"/>
+                                <TextBlock Text="设备自行故障:" Grid.Row="4" Margin="0,5,0,0"/>
+                                <TextBlock Text="{Binding SelectedDevice.IsAutoCon}" Grid.Row="4" Grid.Column="1" Margin="0,5,0,0"/>
+                            </Grid>
+                        </Expander>
 
-                            <TextBlock Text="轮询间隔:" Grid.Row="0"/>
-                            <TextBlock Text="{Binding SelectedReadModel.Interavel}" Grid.Row="0" Grid.Column="1"/>
+                        <!-- 运行参数 -->
+                        <Expander Header="运行参数" IsExpanded="True" Margin="0,0,0,10">
+                            <Grid Margin="10,5,0,5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="80"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
-                            <TextBlock Text="当前状态:" Grid.Row="1" Margin="0,5,0,0"/>
-                            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,5,0,0">
-                                <Ellipse Width="10" Height="10"/>
-                                <TextBlock Text="{Binding SelectedReadModel.Status}" Margin="5,0,0,0"/>
-                            </StackPanel>
-                        </Grid>
-                    </Expander>
-                    <Expander Header="其他信息" IsExpanded="True" Margin="0,0,0,10">
-                        <Grid Margin="10,5,0,5">
-                            <Grid.RowDefinitions>
-                                <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
-                            </Grid.RowDefinitions>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="100"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
+                                <TextBlock Text="轮询间隔:" Grid.Row="0"/>
+                                <TextBlock Text="{Binding SelectedReadModel.Interavel}" Grid.Row="0" Grid.Column="1"/>
 
-                            <TextBlock Text="最后通信时间:" Grid.Row="0" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedDevice.Notes}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
-                            <TextBlock Text="错误计数:" Grid.Row="1" Margin="0,5,0,0"/>
-                            <TextBlock Text="{Binding SelectedReadModel.ErrorCount}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
-                        </Grid>
-                    </Expander>
-                    <Button Content="导入csv" Margin="0 10"></Button>
-                    <Button Content="报文查看" Margin="0 10" Command="{Binding ShowPackUCCmdCommand}"></Button>
-                </StackPanel>
-            </Border>
+                                <TextBlock Text="当前状态:" Grid.Row="1" Margin="0,5,0,0"/>
+                                <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal" Margin="0,5,0,0">
+                                    <Ellipse Width="10" Height="10"/>
+                                    <TextBlock Text="{Binding SelectedReadModel.Status}" Margin="5,0,0,0"/>
+                                </StackPanel>
+                            </Grid>
+                        </Expander>
+                        <Expander Header="其他信息" IsExpanded="True" Margin="0,0,0,10">
+                            <Grid Margin="10,5,0,5">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto"/>
+                                    <RowDefinition Height="Auto"/>
+                                </Grid.RowDefinitions>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="100"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
 
+                                <TextBlock Text="最后通信时间:" Grid.Row="0" Margin="0,5,0,0"/>
+                                <TextBlock Text="{Binding SelectedDevice.Notes}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                                <TextBlock Text="错误计数:" Grid.Row="1" Margin="0,5,0,0"/>
+                                <TextBlock Text="{Binding SelectedReadModel.ErrorCount}" Grid.Row="1" Grid.Column="1" Margin="0,5,0,0" TextWrapping="Wrap"/>
+                            </Grid>
+                        </Expander>
+                        <Button Content="导入csv" Margin="0 10"></Button>
+                        <Button Content="报文查看" Margin="0 10" Command="{Binding ShowPackUCCmdCommand}"></Button>
+
+                    </StackPanel>
+                </Border>
+            </ScrollViewer>
         </Grid>
 
     </Grid>

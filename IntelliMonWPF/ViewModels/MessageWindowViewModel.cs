@@ -11,7 +11,7 @@ using System.Windows;
 
 namespace IntelliMonWPF.ViewModels
 {
-    internal class MessageWindowViewModel:BindableBase
+    public class MessageWindowViewModel:BindableBase
     {
         private readonly IEventAggregator _eventAggregator;
         private string myVar;

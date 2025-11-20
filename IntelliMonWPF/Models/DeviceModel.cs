@@ -3,6 +3,7 @@ using IntelliMonWPF.Interface;
 using IntelliMonWPF.Interface.Ichannel;
 using Prism.Ioc;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -11,35 +12,21 @@ using System.Windows;
 
 namespace IntelliMonWPF.Models
 {
-    internal class DeviceModel : BindableBase
+    public class DeviceModel : BindableBase
     {
-       
+        internal ConcurrentDictionary<(string,int),HashSet<int>> AdressSet { get; set; } = new ConcurrentDictionary<(string, int), HashSet<int>>();
+
         public string Type { get; set; }
-       
         public string DeviceName { get; set; }
         public object Config { get; set; }
-        // ----------- 不常变化的属性（保持自动属性） -------------
+        public int HeartSize { get; set; } = 1;
         public IModbusReadChannel Channel { get; set; }  // 设备的接口实现
-        public ModbusEnum.Modbus Protocol { get; set; } // 协议类型
+        public ModbusEnum.Modbus Protocol { get; set; } 
         public ModbusEnum.SerialPortType SerialPortType { get; set; }
-        public Dictionary<(string DeviceName, int SlaveId), ReadModel> readMangerModbus { get; set; } = new Dictionary<(string DeviceName, int SlaveId), ReadModel>();
-        // DeviceModel
+        internal Dictionary<(string DeviceName, int SlaveId,int StartAdress), ReadModel> readMangerModbus { get; set; } = 
+            new Dictionary<(string DeviceName, int SlaveId, int StartAdress), ReadModel>();
         public ObservableCollection<ReadModel> ReadModels { get; set; } = new();
-        private IMessages messages= ContainerLocator.Container.Resolve<IMessages>();
-
-        // ----------- INotifyPropertyChanged 实现 -------------        
-        public void Add(string DeviceName,int SlaveId,ReadModel readModel)
-        {
-            if (readMangerModbus.Keys.Contains((DeviceName, SlaveId)))
-            {
-               messages.ShowMessage("该设备已经存在");
-            }
-            else
-            {
-                readMangerModbus.Add((DeviceName, SlaveId), readModel);
-                ReadModels.Add(readModel);
-            }
-        }
+       
         private string _Status;
 
         public string Status
@@ -49,7 +36,5 @@ namespace IntelliMonWPF.Models
                 RaisePropertyChanged();
             }
         }
-
-
     }
 }

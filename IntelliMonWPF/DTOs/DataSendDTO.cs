@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.DTOs
 {
-    internal class DataSendDTO
+    public class DataSendDTO
     {
         [JsonProperty("DeviceName")]
         public string DeviceName { get; set; }

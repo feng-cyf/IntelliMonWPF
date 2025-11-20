@@ -1,4 +1,5 @@
-﻿using IntelliMonWPF.Models.Manger;
+﻿using IntelliMonWPF.Helper.Tools;
+
 using Modbus.IO;
 using System;
 using System.Collections.Generic;
@@ -7,21 +8,19 @@ using System.IO.Ports;
 using System.Linq;
 using System.Threading;
 
-internal class LoggingSerialResource : IStreamResource, IDisposable
+public class LoggingSerialResource : IStreamResource, IDisposable
 {
     private readonly SerialPort _serialPort;
-    private readonly ModbusDictManger _modbusDictManger;
-
+    private SingelTool singelTool=>SingelTool.singelTool;
     /* 接收缓冲区 & 3.5T 计时 */
     private readonly List<byte> _rxBuffer = new();
     private DateTime _lastRxTime = DateTime.MinValue;
     private readonly double _char3_5T;          // 3.5 字符时间(ms)
     private readonly Timer _frameTimer;         // 轮询帧结束
 
-    public LoggingSerialResource(SerialPort serialPort, ModbusDictManger dictManger)
+    public LoggingSerialResource(SerialPort serialPort)
     {
         _serialPort = serialPort ?? throw new ArgumentNullException(nameof(serialPort));
-        _modbusDictManger = dictManger;
 
         /* 计算 3.5 字符时间：11 bit/字符 × 3.5 */
         _char3_5T = 11.0 * 3.5 * 1000 / _serialPort.BaudRate;
@@ -69,7 +68,7 @@ internal class LoggingSerialResource : IStreamResource, IDisposable
     public void Write(byte[] buffer, int offset, int count)
     {
         var tx = buffer.Skip(offset).Take(count).ToArray();
-        _modbusDictManger.MoudbusQueue.Add("TX: " + BitConverter.ToString(tx));
+        singelTool.MoudbusQueue.Add("TX: " + BitConverter.ToString(tx));
         _serialPort.BaseStream.Write(buffer, offset, count);
     }
 
@@ -111,7 +110,7 @@ internal class LoggingSerialResource : IStreamResource, IDisposable
             /* CRC 校验 */
             if (frame.Length >= 5 && CheckCrc(frame))
             {
-                _modbusDictManger.MoudbusQueue.Add("RX: " + BitConverter.ToString(frame));
+                singelTool.MoudbusQueue.Add("RX: " + BitConverter.ToString(frame));
             }
             /* CRC 错误 -> 直接丢弃整包，避免死循环 */
         }

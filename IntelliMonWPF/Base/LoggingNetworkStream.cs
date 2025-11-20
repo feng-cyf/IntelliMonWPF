@@ -1,4 +1,7 @@
-﻿using IntelliMonWPF.Models.Manger;
+﻿using IntelliMonWPF.Helper.Tools;
+using IntelliMonWPF.IF_Implements.Factory;
+using IntelliMonWPF.Interface.IFactory;
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,22 +15,20 @@ using System.Windows;
 
 namespace IntelliMonWPF.Base
 {
-    internal class ModbusSniffer : IDisposable
+    public class ModbusSniffer : IDisposable
     {
         private TcpListener _listener;
         private CancellationTokenSource _cts;
-        private ModbusDictManger _modbusDictManger;
-
+        private SingelTool SingelTool;
         /// <summary>
-        /// 建立本地端口 -> 远端从站的透明代理，并在控制台打印所有收发
+        /// 建立本地端口 -> 远端从站的透明代理
         /// </summary>
-        public TcpClient CreateProxy(int localPort, string remoteIp, int remotePort, ModbusDictManger modbusDictManger)
+        public TcpClient CreateProxy(int localPort, string remoteIp, int remotePort,SingelTool singelTool)
         {
             _cts?.Cancel();
             _cts?.Dispose();
             _cts = new CancellationTokenSource();
-
-            _modbusDictManger = modbusDictManger;
+            SingelTool = singelTool;
             _listener = new TcpListener(IPAddress.Loopback, localPort);
             _listener.Start();
 
@@ -63,7 +64,7 @@ namespace IntelliMonWPF.Base
             }
             catch (Exception ex)
             {
-                _modbusDictManger.MoudbusQueue.Add($"连接异常: {ex.Message}");
+                SingelTool.MoudbusQueue.Add($"连接异常: {ex.Message}");
             }
         }
 
@@ -73,7 +74,7 @@ namespace IntelliMonWPF.Base
             int len;
             while (!token.IsCancellationRequested && (len = await from.ReadAsync(buf, 0, buf.Length, token)) > 0)
             {
-                _modbusDictManger.MoudbusQueue.Add($"{dir} {BitConverter.ToString(buf, 0, len)}");
+                SingelTool.MoudbusQueue.Add($"{dir} {BitConverter.ToString(buf, 0, len)}");
                 await to.WriteAsync(buf, 0, len, token);
             }
         }

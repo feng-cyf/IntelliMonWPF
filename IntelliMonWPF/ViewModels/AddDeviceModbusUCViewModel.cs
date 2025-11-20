@@ -1,7 +1,10 @@
 ﻿using IntelliMonWPF.Enum;
+using IntelliMonWPF.IF_Implements.Factory;
 using IntelliMonWPF.Interface;
+using IntelliMonWPF.Interface.IFactory;
+using IntelliMonWPF.Interface.IMangerInferface;
 using IntelliMonWPF.Models;
-using IntelliMonWPF.Models.Manger;
+using IntelliMonWPF.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -33,12 +36,14 @@ namespace IntelliMonWPF.ViewModels
                messages.ShowMessage("设备为空请添加设备","温馨提示");
             }
         }
-        private readonly ModbusDictManger modbusDictManger;
+        private readonly IDictManger<string,DeviceModel> modbusDictManger;
+        private readonly IDictMangerFactory dictMangerFactory;
         private IMessages messages;
-        public AddDeviceModbusUCViewModel(ModbusDictManger modbusDictManger,IMessages messages)
+        public AddDeviceModbusUCViewModel(DictMangerFactory dictMangerFactory,IMessages messages)
         {
-            this.modbusDictManger = modbusDictManger;
-            DeviceNameList=new ObservableCollection<string>(modbusDictManger.ModbusMangeDict.Select(c => c.Key).ToList());
+            this.dictMangerFactory = dictMangerFactory;
+            modbusDictManger = dictMangerFactory.CreateDictManger<string, DeviceModel>(DictMangerType.DeviceModel);
+            DeviceNameList=new ObservableCollection<string>(modbusDictManger.GetAllKeys());
             CanelCmd = new DelegateCommand(Canle);
             AddCmd= new DelegateCommand(Add);
             this.messages = messages;
@@ -127,6 +132,7 @@ namespace IntelliMonWPF.ViewModels
             }
         }
         public DelegateCommand AddCmd { get; set; }
+        private DeviceModelServerClass _ModelServerClass;
         private void Add()
         {
             if (DeviceName==null || SlaveId == string.Empty)
@@ -150,11 +156,15 @@ namespace IntelliMonWPF.ViewModels
                 NumAddress = (ushort)ReadCount,
                 Interavel = Intervate,
                 ModbusRead = SelectFunction.Key,
-                Modbus = modbusDictManger.ModbusMangeDict[DeviceName].Protocol
+                Modbus = modbusDictManger.GetValue(DeviceName).Protocol
             };
-            modbusDictManger.ModbusMangeDict[DeviceName].Add(DeviceName, Convert.ToInt32(SlaveId), readModel);
-            modbusDictManger.ModbusMangeDict[DeviceName].Channel.ReadAsyance(readModel);
+            DeviceModel device = modbusDictManger.GetValue(DeviceName);
+            _ModelServerClass = new DeviceModelServerClass(device);
+            if (!_ModelServerClass.AddReadModel(DeviceName, readModel)) 
+                return;
+            modbusDictManger.GetValue(DeviceName).Channel.ReadAsyance(readModel);
             RequestClose.Invoke();
+            LoggingService.Instance.Publish(LogType.DeviceConfig, $"添加设备 {DeviceName} 从站 {SlaveId} 读取点 {readModel.Name.Value} 配置");
         }
         public DelegateCommand CanelCmd { get; set; }
         private void Canle()

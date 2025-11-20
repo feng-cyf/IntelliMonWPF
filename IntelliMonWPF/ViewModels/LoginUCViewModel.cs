@@ -10,7 +10,7 @@ using System.Windows;
 
 namespace IntelliMonWPF.ViewModels
 {
-    internal class LoginUCViewModel : BindableBase, IDialogAware
+    public class LoginUCViewModel : BindableBase, IDialogAware
     {
         public DialogCloseListener RequestClose { get; }
 

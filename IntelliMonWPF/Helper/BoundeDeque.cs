@@ -8,7 +8,7 @@ namespace IntelliMonWPF.Helper
 {
     using System.Collections.Generic;
 
-    public class BoundedDeque<T>
+    internal class BoundedDeque<T>
     {
         private readonly LinkedList<T> _deque = new();
         private readonly int _maxSize;

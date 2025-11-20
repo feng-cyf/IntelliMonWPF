@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.DTOs
 {
-    internal class EditPointDTO
+    public class EditPointDTO
     {
         public string DeviceName { get; set; } = "";
         public int SlaveId { get; set; }

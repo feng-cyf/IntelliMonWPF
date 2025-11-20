@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.Interface.Ichannel
 {
-    internal interface IModbusReadChannel
+    public interface IModbusReadChannel
     {
         bool IsConnected { get; }
         Task OpenAsyance(DeviceModel deviceModel);

@@ -1,9 +1,12 @@
 ﻿using IntelliMonWPF.DTOs;
 using IntelliMonWPF.Event;
 using IntelliMonWPF.HttpClient;
+using IntelliMonWPF.IF_Implements.Factory;
 using IntelliMonWPF.Interface;
+using IntelliMonWPF.Interface.IFactory;
+using IntelliMonWPF.Interface.IMangerInferface;
 using IntelliMonWPF.Models;
-using IntelliMonWPF.Models.Manger;
+using IntelliMonWPF.Services;
 using MaterialDesignThemes.Wpf;
 using Modbus.Device;
 using Prism.Dialogs;
@@ -20,19 +23,25 @@ using System.Windows.Data;
 
 namespace IntelliMonWPF.ViewModels
 {
-    internal class DeviceManagementUCViewModel : BindableBase
+    public class DeviceManagementUCViewModel : BindableBase
     {
-        private readonly ModbusDictManger modbusDevice;
+        private readonly IDictManger<string,DeviceModel> modbusDevice;
+        private readonly IDictMangerFactory dictMangerFactory;
         private IMessages messages;
         private IEventAggregator eventAggregator;
-        public DeviceManagementUCViewModel(IDialogService dialogService, ModbusDictManger modbusDictManger,IMessages messages,IEventAggregator eventAggregator)
+        private readonly IObserVableCollectionFactory obserVableCollectionFactory;
+        private readonly IOberVableCollectionManger<DeviceModel> deviceModelObservable;
+        public DeviceManagementUCViewModel(IDialogService dialogService, DictMangerFactory dictMangerFactory,IMessages messages,IEventAggregator eventAggregator,ObserVableFactory obserVableFactory)
         {
+            obserVableCollectionFactory = obserVableFactory;
+            deviceModelObservable = obserVableFactory.CreateOberVableCollectionManger<DeviceModel>(OberVableCollectionType.DeviceModel);
             this.eventAggregator = eventAggregator;
             _dialogService = dialogService;
             AddDeviceCommand = new DelegateCommand(OnAddDevice);
             EditDeviceCmd = new DelegateCommand(EditDebice);
-            this.modbusDevice = modbusDictManger;
-            Devices = this.modbusDevice.ModbusMangeList;
+            this.dictMangerFactory = dictMangerFactory;
+            modbusDevice= dictMangerFactory.CreateDictManger<string, DeviceModel>(DictMangerType.DeviceModel);
+            Devices = deviceModelObservable.GetBing();
             ShowPackUCCmdCommand = new DelegateCommand(ShowPackUC);
             StopDeviceCmd = new DelegateCommand(async () => { await StopDevice(); });
             OpenDeviceCmd=new DelegateCommand(async () => { await OpenDevice(); });
@@ -46,10 +55,10 @@ namespace IntelliMonWPF.ViewModels
             ApiSaveCmd = new DelegateCommand(async()=> await ApiSave());
         }
 
-        private ObservableCollection<DeviceModel> _Devices;
+        private ReadOnlyObservableCollection<DeviceModel> _Devices;
        
 
-        public ObservableCollection<DeviceModel> Devices
+        public ReadOnlyObservableCollection<DeviceModel> Devices
         {
             get { return _Devices; }
             set
@@ -90,7 +99,9 @@ namespace IntelliMonWPF.ViewModels
         public ReadModel SelectedReadModel
         {
             get => _selectedReadModel;
-            set => SetProperty(ref _selectedReadModel, value);
+            set  { _selectedReadModel = value;
+                RaisePropertyChanged();
+            }
         }
         private DeviceModel _SelectedDevice;
 
@@ -126,6 +137,7 @@ namespace IntelliMonWPF.ViewModels
                 SelectedReadModel.cts.Cancel();
                 SelectedReadModel.cts.Dispose();
                 SelectedReadModel.Status = "已关闭";
+                LoggingService.Instance.Publish(LogType.DeviceConfig, $"停止设备 {SelectedDevice.DeviceName} 从站 {SelectedReadModel.SlaveId} 运行");
             }
         }
         public DelegateCommand OpenDeviceCmd { get; set; }
@@ -136,13 +148,15 @@ namespace IntelliMonWPF.ViewModels
                messages.ShowMessage("请选择要启动的从站设备"); return;
             }
             if (!SelectedReadModel.cts.IsCancellationRequested) {messages.ShowMessage("设备正在运行"); }
-            DeviceModel model = modbusDevice.ModbusMangeDict[SelectedDevice.DeviceName];
+            DeviceModel model = modbusDevice.GetValue(SelectedDevice.DeviceName);
             SelectedReadModel.cts = new CancellationTokenSource();
             await SelectedDevice.Channel.ReadAsyance(SelectedReadModel);
+            LoggingService.Instance.Publish(LogType.DeviceConfig, $"重新启动设备 {SelectedDevice.DeviceName} 从站 {SelectedReadModel.SlaveId} 运行");
         }
 
         public DelegateCommand RemoveDeviceCmd { get; set; }
         private ICollectionView collectionView;
+        private DeviceModelServerClass serverClass;
         private async Task RemoveDevice() 
         {
             if (SelectedReadModel == null)
@@ -154,11 +168,14 @@ namespace IntelliMonWPF.ViewModels
             {
                 path = "设备正在运行,\n" + path;
             }
-            var result = messages.ShowMessageSure(path, "提醒");
-            if (result)
+            var result = MessageBox.Show(path, "提醒");
+            if (result==MessageBoxResult.OK)
             {
-                SelectedReadModel.cts.Cancel(); SelectedReadModel.cts.Dispose();
-                modbusDevice.Remove(SelectedDevice.DeviceName,SelectedReadModel.SlaveId,SelectedReadModel);
+                if (!SelectedReadModel.cts.IsCancellationRequested)
+                { SelectedReadModel.cts.Cancel(); SelectedReadModel.cts.Dispose(); }
+                LoggingService.Instance.Publish(LogType.DeviceConfig, $"尝试删除设备 {SelectedDevice.DeviceName} 从站 {SelectedReadModel.SlaveId} 配置");
+                serverClass= new DeviceModelServerClass(SelectedDevice);
+                serverClass.RemoveReadModel(SelectedDevice.DeviceName,SelectedReadModel.SlaveId,SelectedReadModel.StartAddress);
             }
         }
         public DelegateCommand StartDeviceCmd { get; set; }
@@ -204,7 +221,7 @@ namespace IntelliMonWPF.ViewModels
         public DelegateCommand SearchDeviceCmd {  get; set; }
         private void Refresh()
         {
-            collectionView = CollectionViewSource.GetDefaultView(modbusDevice.ModbusMangeList);
+            collectionView = CollectionViewSource.GetDefaultView(deviceModelObservable.GetBing());
             collectionView.Filter = FilterDevice;
             collectionView.Refresh();
         }
@@ -243,7 +260,7 @@ namespace IntelliMonWPF.ViewModels
         }
 
         public DelegateCommand ApiSaveCmd {  get; set; }
-        private DeviceSaveApiClient DeviceSaveApiClient = new();
+        private readonly DeviceSaveApiClient DeviceSaveApiClient = new();
         private async Task ApiSave()
         {
             List<DeviceDTO> deviceDTOs = new List<DeviceDTO>();
@@ -264,6 +281,8 @@ namespace IntelliMonWPF.ViewModels
            };
            var result= await DeviceSaveApiClient.DeviceSave(apiRequest);
             eventAggregator.GetEvent<ShowMesssgeWindow>().Publish(new Tuple<string, int>(result.message, 3));
+            var json= Newtonsoft.Json.JsonConvert.SerializeObject(deviceDTOs);
+            LoggingService.Instance.Publish(LogType.Machine, json);
         }
 
         private string _DeviceName;

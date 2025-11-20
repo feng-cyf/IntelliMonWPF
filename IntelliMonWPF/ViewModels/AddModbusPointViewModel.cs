@@ -1,6 +1,9 @@
-﻿using IntelliMonWPF.Interface;
+﻿using IntelliMonWPF.IF_Implements.Factory;
+using IntelliMonWPF.Interface;
+using IntelliMonWPF.Interface.IFactory;
+using IntelliMonWPF.Interface.IMangerInferface;
 using IntelliMonWPF.Models;
-using IntelliMonWPF.Models.Manger;
+using IntelliMonWPF.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -10,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.ViewModels
 {
-    internal class AddModbusPointViewModel :BindableBase, IDialogAware
+    public class AddModbusPointViewModel :BindableBase, IDialogAware
     {
         private ObservableCollection<PointModel> _points;
         public DialogCloseListener RequestClose { get; }=new DialogCloseListener();
@@ -28,7 +31,7 @@ namespace IntelliMonWPF.ViewModels
         public void OnDialogOpened(IDialogParameters parameters)
         {
             _points = parameters.GetValue<ObservableCollection<PointModel>>("Pointlist");
-            DeviceNameList=new ObservableCollection<string>(ModbusDictManger.ModbusMangeDict.Keys);
+            DeviceNameList=new ObservableCollection<string>(ModbusDictManger.GetAllKeys());
         }
         private ObservableCollection<string> _DeviceNameList;
 
@@ -58,7 +61,7 @@ namespace IntelliMonWPF.ViewModels
                 _SelectDeviceName = value;
                 RaisePropertyChanged();
                 SlaveIdLIst = new ObservableCollection<int>(
-         ModbusDictManger.ModbusMangeDict[SelectDeviceName].readMangerModbus.Values.Select(x => x.SlaveId));
+         new HashSet<int>(ModbusDictManger.GetValue(SelectDeviceName).readMangerModbus.Values.Select(x => x.SlaveId)));
             }
         }
         private string _DeviceFuction="请选择设备名称和从站地址";
@@ -77,7 +80,7 @@ namespace IntelliMonWPF.ViewModels
             get { return _SelectSlaveId; }
             set { _SelectSlaveId = value;
                 RaisePropertyChanged();
-                DataInit();
+                GetStartAdressList();
             }
         }
         private string _StartAddress;
@@ -87,6 +90,7 @@ namespace IntelliMonWPF.ViewModels
             get { return _StartAddress; }
             set { _StartAddress = value;
                 RaisePropertyChanged();
+                DataInit();
             }
         }
 
@@ -166,9 +170,25 @@ namespace IntelliMonWPF.ViewModels
                 RaisePropertyChanged();
             }
         }
+        private ObservableCollection<int> _StartAdressList;
+
+        public ObservableCollection<int> StartAdressList
+        {
+            get { return _StartAdressList; }
+            set { _StartAdressList = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        private void GetStartAdressList()
+        {
+            StartAdressList = new ObservableCollection<int>(
+         new HashSet<int>(ModbusDictManger.GetValue(SelectDeviceName).readMangerModbus.Values.Select(x => x.StartAddress)));
+        }
         private void DataInit()
         {
-            var Data = ModbusDictManger.ModbusMangeDict[SelectDeviceName].readMangerModbus[(SelectDeviceName, SelectSlaveId)];
+
+            var Data = ModbusDictManger.GetValue(SelectDeviceName).readMangerModbus[(SelectDeviceName, SelectSlaveId,Convert.ToInt32(StartAddress))];
             DeviceFuction = Data.Device;
             AccessType = Data.Function switch 
             {
@@ -178,14 +198,15 @@ namespace IntelliMonWPF.ViewModels
                 "04"=>"只读",
                 _=>"未知类型"
             };
-            StartAddress = Data.StartAddress.ToString();
             Len = Data.NumAddress.ToString();
         }
-        private ModbusDictManger ModbusDictManger;
+        private IDictManger<string,DeviceModel> ModbusDictManger;
+        private IDictMangerFactory dictMangerFactoryl;
         private IMessages messages;
-        public AddModbusPointViewModel(ModbusDictManger modbusDictManger,IMessages messages)
+        public AddModbusPointViewModel(DictMangerFactory dictMangerFactory,IMessages messages)
         {
-            this.ModbusDictManger = modbusDictManger;   
+            this.dictMangerFactoryl = dictMangerFactory;   
+            ModbusDictManger = dictMangerFactory.CreateDictManger<string, DeviceModel>(DictMangerType.DeviceModel);
             this.messages = messages;
             AddCmd =new DelegateCommand(Add);
         }
@@ -193,7 +214,7 @@ namespace IntelliMonWPF.ViewModels
         private void Add()
         {
             if (string.IsNullOrEmpty(PointName) || string.IsNullOrEmpty(Offset)|| string.IsNullOrEmpty(Desc)) { messages.ShowMessage("数据不能为空");return; }
-            var PointtAdd= ModbusDictManger.ModbusMangeDict[SelectDeviceName].readMangerModbus[(SelectDeviceName, SelectSlaveId)].PointModel = new Models.PointModel()
+            var PointtAdd= ModbusDictManger.GetValue(SelectDeviceName).readMangerModbus[(SelectDeviceName, SelectSlaveId, Convert.ToInt32(StartAddress))].PointModels = new Models.PointModel()
             {
                 PointName=PointName,
                 StartAddress=StartAddress,
@@ -209,6 +230,7 @@ namespace IntelliMonWPF.ViewModels
             };
             _points.Add(PointtAdd);
             RequestClose.Invoke();
+            LoggingService.Instance.Publish(LogType.PointConfig, $"添加设备 {SelectDeviceName} 从站 {SelectSlaveId} 点 {PointName} 配置");
         }
     }
 }

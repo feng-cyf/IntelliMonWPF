@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace IntelliMonWPF.HttpClient
 {
-    internal class ApiRequest<T> where T : class
+    public class ApiRequest<T> where T : class
     {
         public string Route { get; set; }
         /// <summary>

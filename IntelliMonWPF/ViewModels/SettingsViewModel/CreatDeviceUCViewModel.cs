@@ -1,8 +1,12 @@
 ﻿using IntelliMonWPF.Base;
 using IntelliMonWPF.Enum;
+using IntelliMonWPF.IF_Implements.Factory;
+using IntelliMonWPF.IF_Implements.MangerInferface;
 using IntelliMonWPF.Interface;
+using IntelliMonWPF.Interface.IFactory;
+using IntelliMonWPF.Interface.IMangerInferface;
 using IntelliMonWPF.Models;
-using IntelliMonWPF.Models.Manger;
+using IntelliMonWPF.Services;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -19,7 +23,7 @@ using System.Windows.Threading;
 
 namespace IntelliMonWPF.ViewModels.SettingsViewModel
 {
-    internal class CreatDeviceUCViewModel : ModbuslBase, IDialogAware
+    public class CreatDeviceUCViewModel : ModbuslBase, IDialogAware
     {
         public DialogCloseListener RequestClose { get; }= new DialogCloseListener();
 
@@ -37,9 +41,12 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
         {
 
         }
-        private ModbusDictManger ModbusDictManger;
+        private readonly IDictManger<string,DeviceModel> modbusDictManger;
+        private IDictMangerFactory _dictMangerFactory;
         private IMessages messages;
-        public CreatDeviceUCViewModel(ModbusDictManger modbusDictManger,IMessages messages)
+        private IOberVableCollectionManger<DeviceModel> deviceModelOberVableCollectionManger;
+        private IObserVableCollectionFactory obserVableCollectionFactory;
+        public CreatDeviceUCViewModel(IMessages messages,DictMangerFactory dictMangerFactory,ObserVableFactory obserVableFactory)
         {
             #region 参数初始化
             Modbus = new ObservableCollection<KeyValuePair<ModbusEnum.Modbus, string>> 
@@ -50,7 +57,10 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
             };
             SelectModbus = Modbus[0];
             #endregion
-            ModbusDictManger = modbusDictManger;
+            obserVableCollectionFactory = obserVableFactory;
+            _dictMangerFactory = dictMangerFactory;
+            modbusDictManger = _dictMangerFactory.CreateDictManger<string, DeviceModel>(DictMangerType.DeviceModel);
+            deviceModelOberVableCollectionManger = obserVableCollectionFactory.CreateOberVableCollectionManger<DeviceModel>(OberVableCollectionType.DeviceModel);
             AddDeviceCmd = new DelegateCommand(AddDevice);
             GetIpAdress();
             OnIpAderss(null,null);
@@ -104,18 +114,21 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
             tcpModel.Ip=CanWriteIP==false?IpAdresss:string.Empty;
             DeviceModel deviceModel = new DeviceModel() 
             {
+                HeartSize= HeartIze,
                 Config = tcpModel,
                 Type="TCPModbus",Protocol=SelectModbus.Key,
-                Channel= new IF_Implements.Channel.ModbusReadChannel(),
+                Channel= new IF_Implements.Channel.ModbusReadChannel(_dictMangerFactory),
                 DeviceName= IpAdresss+":"+ Port.ToString(),
             };
-            if (!ModbusDictManger.ModbusMangeDict.ContainsKey(deviceModel.DeviceName))
+            if (!modbusDictManger.ContainsKey(deviceModel.DeviceName))
             { 
                 await deviceModel.Channel.OpenAsyance(deviceModel);
                 if (deviceModel.Channel.IsConnected)
                 {
-                    ModbusDictManger.AddDevice(deviceModel);
+                    modbusDictManger.Add(deviceModel);
+                    deviceModelOberVableCollectionManger.Add(deviceModel);
                     RequestClose.Invoke();
+                    LoggingService.Instance.Publish(LogType.DeviceConfig, $"添加TCP设备:{deviceModel.DeviceName}成功");
                 }
             }
             else messages.ShowMessage("当前IP已经连接"); return;
@@ -142,7 +155,7 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
             {
                 DeviceName = SelectPortName,
                 Config = SerialParameter,
-                Channel = new IF_Implements.Channel.ModbusReadChannel(),
+                Channel = new IF_Implements.Channel.ModbusReadChannel(_dictMangerFactory),
                 Protocol = SelectModbus.Key,
                 SerialPortType = SerialPortType == true ? ModbusEnum.SerialPortType.RTU : ModbusEnum.SerialPortType.ASCII,
                 Type = SerialPortType == true ? "RTUModbus" : "ASCIIModbus",
@@ -152,11 +165,23 @@ namespace IntelliMonWPF.ViewModels.SettingsViewModel
 
             if (deviceModel.Channel.IsConnected)
             {
-                ModbusDictManger.AddDevice(deviceModel);
+                modbusDictManger.Add(deviceModel);
+                deviceModelOberVableCollectionManger.Add(deviceModel);
                 RequestClose.Invoke();
+                LoggingService.Instance.Publish(LogType.DeviceConfig, $"添加串口设备:{deviceModel.DeviceName}成功");
             }
         }
         #region 参数设置
+        private int _HeartIze=1;
+
+        public int HeartIze
+        {
+            get { return _HeartIze; }
+            set { _HeartIze = value;
+                RaisePropertyChanged();
+            }
+        }
+
         private ObservableCollection<KeyValuePair<ModbusEnum.Modbus,string>> _Modbus;
 
         public ObservableCollection<KeyValuePair<ModbusEnum.Modbus, string>> Modbus
