@@ -59,8 +59,5 @@ namespace IntelliMonWPF.Helper
         // Using a DependencyProperty as the backing store for CanChange.  This enables animation, styling, binding, etc...
         public static readonly DependencyProperty CanChangeProperty =
             DependencyProperty.RegisterAttached("CanChangeanChange", typeof(bool), typeof(PassWordBoxHelper));
-
-
-
     }
 }

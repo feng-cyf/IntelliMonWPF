@@ -78,32 +78,32 @@ namespace IntelliMonWPF
             containerRegistry.RegisterSingleton<ApiPageViewModel>();
             containerRegistry.RegisterForNavigation<DataMonitoringUC, DataMonitoringUCViewModel>();
         }
-        //protected override void OnInitialized()
-        //{
-        //    var dialogService = Container.Resolve<IDialogService>();
-        //    dialogService.ShowDialog("LoginUC", null, r =>
-        //    {
-        //        if (r != null && r.Result == ButtonResult.OK)
-        //        {
-        //            if (r.Parameters.ContainsKey("userInfo"))
-        //            {
-        //                var userInfo = r.Parameters.GetValue<UserInfo>("userInfo");
+        protected override void OnInitialized()
+        {
+            var dialogService = Container.Resolve<IDialogService>();
+            dialogService.ShowDialog("LoginUC", null, r =>
+            {
+                if (r != null && r.Result == ButtonResult.OK)
+                {
+                    if (r.Parameters.ContainsKey("userInfo"))
+                    {
+                        var userInfo = r.Parameters.GetValue<UserInfo>("userInfo");
 
-        //                // 传给 MainWindow 的 VM
-        //                var mainVm = (MainWindowViewModel)Current.MainWindow.DataContext;
-        //                mainVm.SetLoginUser(userInfo); 
-        //                mainVm.SelectedNavigationItem = mainVm.NavigationItems[0];
-        //            }
-        //        }
-        //        else
-        //        {
-        //            // User clicked Cancel or closed the dialog, shut down the application
-        //            Current.Shutdown();
-        //        }
-        //    });
-        //    base.OnInitialized();
+                        // 传给 MainWindow 的 VM
+                        var mainVm = (MainWindowViewModel)Current.MainWindow.DataContext;
+                        mainVm.SetLoginUser(userInfo);
+                        mainVm.SelectedNavigationItem = mainVm.NavigationItems[0];
+                    }
+                }
+                else
+                {
+                    // User clicked Cancel or closed the dialog, shut down the application
+                    Current.Shutdown();
+                }
+            });
+            base.OnInitialized();
 
-        //}
+        }
     }
 
 }

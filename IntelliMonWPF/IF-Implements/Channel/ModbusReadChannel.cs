@@ -178,6 +178,7 @@ namespace IntelliMonWPF.IF_Implements.Channel
         #region 原有方法（代码挪进上面抽出的辅助方法，方法签名不变）
         private async Task<bool> OpenSerialAsync(DeviceModel deviceModel)
         {
+            cts=new CancellationTokenSource();
             if (deviceModel.Config is not SerialPortModel serialPortModel)
             {
                messages.ShowMessage("未知串口配置类型");

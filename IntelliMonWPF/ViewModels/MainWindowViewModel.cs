@@ -51,7 +51,7 @@ namespace IntelliMonWPF.ViewModels
             _timer.Interval = TimeSpan.FromSeconds(1);
             _timer.Tick += (s, e) =>
             {
-                Time = DateTime.Now.ToString("yy  yy-MM-dd hh:mm:ss");
+                Time = DateTime.Now.ToString("yyyy-MM-dd hh:mm:ss");
             };
             _timer.Start();
             ShowApiLogCmd = new DelegateCommand(ShowApiLog);

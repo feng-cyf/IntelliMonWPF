@@ -129,16 +129,20 @@ namespace IntelliMonWPF.Event.EventBus
             var oldKeySet = new HashSet<string>(oldKey);
 
             foreach (var key in StatusIndex.Keys.ToList())
-                RemoveData(StatusList, StatusIndex, key);
+                if (!oldKeySet.Contains(key))
+                    RemoveData(StatusList, StatusIndex, key);
 
             foreach (var key in SingalIntListIndex.Keys.ToList())
-                RemoveData(SingalIntList, SingalIntListIndex, key);
+                if (!oldKeySet.Contains(key))
+                    RemoveData(SingalIntList, SingalIntListIndex, key);
 
             foreach (var key in SingalFloatDictIndex.Keys.ToList())
-                RemoveData(SingalFloatList, SingalFloatDictIndex, key);
+                if (!oldKeySet.Contains(key))
+                    RemoveData(SingalFloatList, SingalFloatDictIndex, key);
 
             foreach (var key in FloatsListIndex.Keys.ToList())
-               RemoveData(FloatsList, FloatsListIndex, key);
+                if (!oldKeySet.Contains(key))
+                    RemoveData(FloatsList, FloatsListIndex, key);
         }
     }
 }
