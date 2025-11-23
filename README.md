@@ -71,6 +71,79 @@ IntelliMonWPF是一个完整的工业设备监控系统，采用C# WPF前端和P
 - **数据分析**：NumPy
 - **异步处理**：asyncio
 
+## 项目结构
+
+### 前端结构
+```PlainText
+├── IntelliMonWPF/                # 前端主项目目录
+│   ├── App.xaml                  # 应用程序入口配置
+│   ├── App.xaml.cs               # 应用程序入口代码
+│   ├── Base/                     # 基础类和接口
+│   │   ├── LoggingNetworkStream.cs  # 网络流日志记录
+│   │   ├── ModbuslBase.cs        # Modbus通信基础类
+│   │   └── StreamBase.cs         # 流处理基类
+│   ├── DTOs/                     # 数据传输对象
+│   │   ├── DataSendDTO.cs        # 数据发送DTO
+│   │   ├── DeviceDTO.cs          # 设备DTO
+│   │   ├── PointDTO.cs           # 点位DTO
+│   │   └── ...                   # 其他数据传输对象
+│   ├── DeviceConfig/             # 设备配置相关
+│   │   └── SerialRtuReadCon.cs   # 串口RTU读取连接
+│   ├── Event/                    # 事件系统
+│   │   ├── EventBus/             # 事件总线实现
+│   │   ├── IEvents/              # 事件接口定义
+│   │   └── ...                   # 事件相关类
+│   ├── Helper/                   # 辅助工具类
+│   │   ├── DataConverter.cs      # 数据转换工具
+│   │   ├── SchedulerHelper.cs    # 调度器辅助类
+│   │   └── ...                   # 其他辅助工具
+│   ├── HttpClient/               # HTTP客户端
+│   │   ├── ApiClient.cs          # API客户端基础类
+│   │   └── DeviceSaveApiClient.cs # 设备数据保存API客户端
+│   ├── IF-Implements/            # 接口实现
+│   │   ├── Channel/              # 通信通道实现
+│   │   ├── Factory/              # 工厂模式实现
+│   │   └── MangerInferface/      # 管理器接口实现
+│   ├── Interface/                # 接口定义
+│   │   ├── IFactory/             # 工厂接口
+│   │   ├── IMangerInferface/     # 管理器接口
+│   │   └── Ichannel/             # 通道接口
+│   ├── Models/                   # 数据模型
+│   │   ├── DeviceModel.cs        # 设备模型
+│   │   ├── ReadModel.cs          # 读取模型
+│   │   └── ...                   # 其他数据模型
+│   ├── ViewModels/               # 视图模型（MVVM架构）
+│   │   ├── DataMonitoringUCViewModel.cs # 数据监控视图模型
+│   │   ├── DeviceManagementUCViewModel.cs # 设备管理视图模型
+│   │   └── ...                   # 其他视图模型
+│   └── Views/                    # 视图组件
+│       ├── DataMonitoringUC.xaml # 数据监控界面
+│       ├── DeviceManagementUC.xaml # 设备管理界面
+│       └── ...                   # 其他界面组件
+```
+### 后端结构
+```PlainText
+├── backend/                      # 后端主项目目录
+│   ├── DataBaseControl/          # 数据库控制
+│   │   └── redisClient.py        # Redis客户端实现
+│   ├── Helper/                   # 辅助工具
+│   │   ├── ExcelHelper.py        # Excel处理工具
+│   │   └── loggingHelper.py      # 日志工具
+│   ├── migrations/               # 数据库迁移文件
+│   │   └── models/               # 数据模型迁移
+│   ├── orm/                      # 对象关系映射
+│   │   ├── api/                  # API接口定义
+│   │   │   ├── DataSaveApi.py    # 数据保存API
+│   │   │   ├── DeviceDataSaveApi.py # 设备数据保存API
+│   │   │   ├── LoginApi.py       # 登录API
+│   │   │   └── ...               # 其他API接口
+│   │   ├── main.py               # FastAPI主入口
+│   │   └── model.py              # 数据模型定义
+│   ├── pyproject.toml            # Python项目配置
+│   └── tasks/                    # 任务处理
+│       └── thread_pool_trigger.py # 线程池触发器
+```
+
 ## 系统流程图
 
 ### 数据采集流程
@@ -116,6 +189,22 @@ cd IntelliMonWPF
 - 后端配置文件位于`fastapi_save/orm/dict.py`
 - 数据库连接配置可在其中修改
 - Redis连接默认配置为localhost:6379
+
+## 📸 系统截图
+
+### 设备管理界面
+<img width="1280" height="800" alt="e1fa929b686c7e5bc17180f1dab4a3a" src="https://github.com/user-attachments/assets/5c167871-bf0e-4ba9-ac6c-1deea5ec9d4d" />
+
+
+### 点表配置界面
+<img width="1280" height="800" alt="1e05ae132291aea2b2de2af4e45ff07" src="https://github.com/user-attachments/assets/23da85ef-8d0f-41bd-86cd-90e3b02a7ba5" />
+
+
+### 采集日志界面
+<img width="1280" height="800" alt="a22b4d68cbe553768b01c19b081f05b" src="https://github.com/user-attachments/assets/8e8acd5d-14a3-4489-ad4e-69015c34acdb" />
+
+### 操作日志信息页面
+<img width="1280" height="800" alt="7061e3337a8257a8f1eaaa074e069ca" src="https://github.com/user-attachments/assets/c7c72f74-dac0-4808-bd68-6e7e29f23d81" />
 
 
 
@@ -217,22 +306,6 @@ async def data(request: Data):
 - 通过实时数据采集和分析，提高设备运行效率和故障预警能力
 - 采用模块化设计，便于后续功能扩展和维护
 - 展示了全栈开发能力，包括前端WPF应用和后端FastAPI服务的开发
-## 📸 系统截图
-
-### 设备管理界面
-<img width="1280" height="800" alt="fe9fa26d8c2866a5b3015dc596cbba6" src="https://github.com/user-attachments/assets/21828d9d-ccc1-4cc3-b382-aba8ec1dd12a" />
-
-
-### 点表配置界面
-<img width="1280" height="800" alt="1e05ae132291aea2b2de2af4e45ff07" src="https://github.com/user-attachments/assets/23da85ef-8d0f-41bd-86cd-90e3b02a7ba5" />
-
-
-### 采集日志界面
-<img width="1280" height="800" alt="4d22af611d5e6c53c41905b0223f7c0" src="https://github.com/user-attachments/assets/b850fcf3-4cec-466e-9d85-18b6c3e8f7bc" />
-
-### 操作日志信息页面
-<img width="1280" height="800" alt="7061e3337a8257a8f1eaaa074e069ca" src="https://github.com/user-attachments/assets/c7c72f74-dac0-4808-bd68-6e7e29f23d81" />
-
 
 ## 许可证
 
