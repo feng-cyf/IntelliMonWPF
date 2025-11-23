@@ -98,6 +98,96 @@ StyleCopReport.xml
 *.svclog
 *.scc
 
+# Environment variables and configuration files
+.env
+.env.*
+!.env.example
+config.json
+appsettings.json
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.mdf
+*.ldf
+*.bak
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+pip-delete-this-directory.txt
+
+# Pytest
+.pytest_cache/
+.cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Logs
+*.log
+logs/
+
+# Editor directories and files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Sensitive files
+*.pem
+*.key
+*.cert
+*.pfx
+*.p12
+
+# Coverage reports
+coverage/
+*.coverage
+.coverage.*
+
+# Backup files
+*.bak
+*.tmp
+*.temp
+
+# Test data and examples
+Test/*.xlsx
+Test/*.csv
+Test/*.json
+
+# Redis
+*.rdb
+dump.rdb
+
+# Migration files (optional, uncomment if needed)
+# backend/migrations/
+
+# FastAPI cache
+fastapi_cache/
+
+# API client generated code
+HttpClient/generated/
+
 # Chutzpah Test files
 _Chutzpah*
 

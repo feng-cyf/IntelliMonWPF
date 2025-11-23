@@ -1,3 +1,8 @@
+import os
+
+from dotenv import load_dotenv
+
+load_dotenv("./database.env")
 TORTOISE_ORM = {
     "connections": {
         "default": {
@@ -6,8 +11,8 @@ TORTOISE_ORM = {
                 "host": "127.0.0.1",
                 "port": 3306,
                 "user": "root",
-                "password": "Jwg051113.",
-                "database": "data_save",
+                "password": os.getenv("mysql_pwd"),
+                "database": os.getenv("db"),
             }
         }
     },

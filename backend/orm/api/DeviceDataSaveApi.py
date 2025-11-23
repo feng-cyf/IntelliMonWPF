@@ -18,14 +18,12 @@ class PointRequestItem(PointConfigIn_Pydantic):
     DeviceName: str
     SlaveId: int
 
-# 通用响应模型 - 统一data结构
 class Response(BaseModel):
     code: int
     message: str
     data: dict | str | None = None
 
 
-# 批量设备数据请求模型
 class DeviceDataSaveRequest(BaseModel):
     devices: List[DeviceIn_Pydantic]
 
@@ -46,9 +44,7 @@ async def batch_save_devices(request: DeviceDataSaveRequest):
     error_info = None
 
     try:
-        # 遍历所有设备数据
         for device_data in request.devices:
-            # 检查设备是否已存在
             try:
                 existing_device = await Device.get(
                     DeviceName=device_data.DeviceName,
@@ -61,10 +57,8 @@ async def batch_save_devices(request: DeviceDataSaveRequest):
                 })
                 continue
             except Exception:
-                # 设备不存在，继续保存
                 pass
 
-            # 保存新设备
             try:
                 device = await Device.create(**device_data.dict())
                 saved_device = await Device_Pydantic.from_tortoise_orm(device)
@@ -81,7 +75,6 @@ async def batch_save_devices(request: DeviceDataSaveRequest):
                     }
                 }
 
-        # 构建响应
         if duplicate_devices:
             message = f"成功保存 {len(saved_devices)} 个设备，发现 {len(duplicate_devices)} 个重复设备"
             return {
@@ -155,7 +148,6 @@ class EditPointConfig(BaseModel):
 @app_dataSave.post("/data/editPoint", response_model=Response)
 async def edit_point(ep: EditPointConfig):
     device_ds = [(r.DeviceName, r.SlaveId) for r in ep.EditPointList]
-    # 查询设备（去重）
     conditions = Q()
     for name, sid in device_ds:
         conditions |= Q(DeviceName=name) & Q(SlaveId=sid)
@@ -168,19 +160,15 @@ async def edit_point(ep: EditPointConfig):
             "data": {"existing_points": []}
         }
     device_ids=[d.id for d in devices]
-    # 设备映射（名称+ID -> 设备对象）
     device_map = {(r.DeviceName, r.SlaveId): r for r in devices}
 
-    # 提取所有点名称
     point_names = [p.PointName for p in ep.EditPointList]
 
-    # 查询需要更新的点
     existing_points = await PointConfig.filter(
         device_id__in=device_ids,
         PointName__in=point_names
     ).select_related("device")
 
-    # 统一键的顺序为 (device.id, PointName)
     existing_points_map = {(p.device.id, p.PointName): p for p in existing_points}
 
     to_update = []
@@ -202,7 +190,7 @@ async def edit_point(ep: EditPointConfig):
         point_obj.Desc = item.Desc
 
         to_update.append(point_obj)
-    # 关键点：判断列表不为空再执行批量更新
+    # 判断列表不为空再执行批量更新
     if to_update:
         await PointConfig.bulk_update(
             to_update,

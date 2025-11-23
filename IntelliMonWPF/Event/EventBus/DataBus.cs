@@ -125,24 +125,21 @@ namespace IntelliMonWPF.Event.EventBus
         //清除旧键（自动触发通知）
         public void ClearOldKey(IEnumerable<string> oldKey)
         {
-            if (oldKey == null) return;
+            if (oldKey == null) 
+                return;
             var oldKeySet = new HashSet<string>(oldKey);
 
             foreach (var key in StatusIndex.Keys.ToList())
-                if (!oldKeySet.Contains(key))
-                    RemoveData(StatusList, StatusIndex, key);
+                RemoveData(StatusList, StatusIndex, key);
 
             foreach (var key in SingalIntListIndex.Keys.ToList())
-                if (!oldKeySet.Contains(key))
-                    RemoveData(SingalIntList, SingalIntListIndex, key);
+                RemoveData(SingalIntList, SingalIntListIndex, key);
 
             foreach (var key in SingalFloatDictIndex.Keys.ToList())
-                if (!oldKeySet.Contains(key))
-                    RemoveData(SingalFloatList, SingalFloatDictIndex, key);
+                RemoveData(SingalFloatList, SingalFloatDictIndex, key);
 
             foreach (var key in FloatsListIndex.Keys.ToList())
-                if (!oldKeySet.Contains(key))
-                    RemoveData(FloatsList, FloatsListIndex, key);
+               RemoveData(FloatsList, FloatsListIndex, key);
         }
     }
 }

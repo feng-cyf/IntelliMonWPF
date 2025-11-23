@@ -13,10 +13,9 @@ class JobSchema(BaseModel):
     name: str
     role: str
 
-    model_config = ConfigDict(from_attributes=True)  # 允许从ORM实例创建
+    model_config = ConfigDict(from_attributes=True)
 
 
-# 2. 定义API响应模型
 class SelectJobResponse(BaseModel):
     Message: str
     code: int

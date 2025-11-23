@@ -10,12 +10,9 @@ from orm.model import User, Job  # 确保 User/Job 模型导入正确
 api_register = APIRouter(tags=["register"], prefix="/register")
 
 
-# 1. 职位注册请求模型（RegisterJob）修正：
-# - 解决 datetime 编码与数据库字段匹配问题
-# - 启用 Pydantic v2 兼容配置（from_attributes）
 class RegisterJob(BaseModel):
-    name: str  # Job 模型的 name 字段（必填）
-    role: str  # Job 模型的 role 字段（必填）
+    name: str
+    role: str
     timestamp: Optional[date] = Field(default_factory=date.today)  # 推荐用 date（避免时间格式问题）
 
     class Config:
@@ -50,7 +47,7 @@ async def register_job(job: RegisterJob):
         )
 
 
-        print(f"创建的职位：{new_job.name}，时间：{new_job.timestamp}")  # 正确：用实例 new_job 的字段
+        print(f"创建的职位：{new_job.name}，时间：{new_job.timestamp}")
 
         if new_job:
             return EndMessage(code=200, message=f"职位「{new_job.name}」注册成功")
@@ -62,11 +59,10 @@ async def register_job(job: RegisterJob):
     except Exception as e:
         error_msg = f"保存出现问题：{str(e)}"
         print(f"错误：{error_msg}")
-        return EndMessage(code=500, message=error_msg)  # 服务器错误用 500，区分客户端错误
+        return EndMessage(code=500, message=error_msg)
 
 
-# 5. 用户注册接口（register_user）补充（加密密码+关联 Job）
-@api_register.post("/user", response_model=EndMessage)  # 路径后缀 /user，与职位注册区分
+@api_register.post("/user", response_model=EndMessage)
 async def register_user(user: RegisterUser):
     try:
         try:
